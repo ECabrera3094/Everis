@@ -75,40 +75,43 @@ with open('C:\\Users\\everis\\Documents\\Python\\Json\\Tutorial\\AM2_MCC1_7944.d
 
         df_3[listFinal_Values[i]] = df_2
 
-    #print(df_3)
-
-    txtFile.write(df_3.to_string())
-
-    txtFile.close()
-
 # Lectura del Excel.
-
 # Localidad del Archivo.
 myExcel = 'C:/Users/everis/Documents/Python/Json/Tutorial/INFO.xlsx' # Debe venir del Json. Cambiar para despues.
 
 # Abrimos el WorkBook
 wb = xlrd.open_workbook(myExcel)
 
-# Abrimos el Sheet.
+# Abrimos el Sheet INFO_DAT
 sheet = wb.sheet_by_index(0)
 
-# Leemos una Celda en Especifico
-print(sheet.cell_value(0, 0))
+excel_Rows = sheet.nrows
 
-# Obtenemos el Valor del DF a Comparar.
-strName = df_3.iloc[0][b'name:']
+print("Filas del Excel: ", excel_Rows)
 
-print(strName)
+# Obtengo en Numero de filas del DataFrame (con Cabezera)
+df_Rows = len(df_3)
 
-# Realizamos la Comparacion
-if strName == sheet.cell_value(0, 0):
-    print("OK")
-else:
-    print("DIFERENTE")
+print("Len DF: ", df_Rows)
 
-# Creamos la Nueva Columna llena de Ceros
-df_3[b'Nueva'] = 0
+# Creamos la Nueva Columna 'Grupo' llena de Ceros
+df_3[b'Grupo'] = 0
 
-df_3.loc[2, b'Nueva'] = "Superman"
+# Recorremos TODAS las Filas del Excel SIN Cabezeras
+for i in range(1, excel_Rows):
 
-print (df_3)
+    # Recorremos TODAS las Filas del DF SIN Cabezeras
+    for j in range(1, df_Rows):
+
+        # Comparamos el Excel contra el DF 
+        if (sheet.cell_value(i, 1) == df_3.iloc[j][b'name:']):
+
+            # Si existe el Match, se hace la Relacion entre el Grupo y el Nombre
+            # Agregamos un Valor a una Fila/Columna especifica. 
+            df_3.loc[j, b'Grupo'] = sheet.cell_value(i, 0)
+
+txtFile.write(df_3.to_string())
+
+txtFile.close()
+
+print(df_3)
