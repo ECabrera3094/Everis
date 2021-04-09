@@ -87,15 +87,15 @@ sheet = wb.sheet_by_index(0)
 
 excel_Rows = sheet.nrows
 
-print("Filas del Excel: ", excel_Rows)
-
 # Obtengo en Numero de filas del DataFrame (con Cabezera)
 df_Rows = len(df_3)
 
-print("Len DF: ", df_Rows)
-
 # Creamos la Nueva Columna 'Grupo' llena de Ceros
 df_3[b'Grupo'] = 0
+
+print("INICIO")
+
+time.sleep(5)
 
 # Recorremos TODAS las Filas del Excel SIN Cabezeras
 for i in range(1, excel_Rows):
@@ -104,14 +104,21 @@ for i in range(1, excel_Rows):
     for j in range(1, df_Rows):
 
         # Comparamos el Excel contra el DF 
-        if (sheet.cell_value(i, 1) == df_3.iloc[j][b'name:']):
-
+        if ( sheet.cell_value(i, 1) == df_3.iloc[j][b'name:'] ):
             # Si existe el Match, se hace la Relacion entre el Grupo y el Nombre
             # Agregamos un Valor a una Fila/Columna especifica. 
             df_3.loc[j, b'Grupo'] = sheet.cell_value(i, 0)
 
+            # Si no Posee Grupo alguno, El Nombre se queda por Default.   
+
+        
+print("FIN")
+
 txtFile.write(df_3.to_string())
 
 txtFile.close()
+
+# Guardamos el DF en Excel. 
+#df.to_excel(r'C:\\Users\\everis\\Documents\\Python\\Json\\Tutorial\\data\\Results.xlsx')
 
 print(df_3)
