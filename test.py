@@ -1,7 +1,8 @@
+import time
+import xlrd
 import json
 import pandas as pd
-import xlrd
-import time
+
 
 # Abrimos el Json.
 with open("C:\\Users\\everis\\Documents\\Python\\Json\\Tutorial\\data\\data.json") as data:
@@ -60,65 +61,73 @@ with open('C:\\Users\\everis\\Documents\\Python\\Json\\Tutorial\\AM2_MCC1_7944.d
 
                 df = df.append( {nameColumn : newString[1]},  ignore_index=True)
     
-    df_3 = pd.DataFrame() # Conservar
+    final_df = pd.DataFrame() # Conservar
 
     for i in range(1, len(listFinal_Values)):
 
         # Nuevos DataFrames para Limpiar
-        df_2 = pd.DataFrame() # Limpiar
+        copy_df = pd.DataFrame() # Limpiar
 
-        df_2 = df[listFinal_Values[i]]
+        copy_df = df[listFinal_Values[i]]
 
-        df_2 = df_2.dropna()
+        copy_df = copy_df.dropna()
 
-        df_2 = df_2.reset_index(drop=True)
+        copy_df = copy_df.reset_index(drop=True)
 
-        df_3[listFinal_Values[i]] = df_2
+        final_df[listFinal_Values[i]] = copy_df
 
 # Lectura del Excel.
-# Localidad del Archivo.
-myExcel = 'C:/Users/everis/Documents/Python/Json/Tutorial/INFO.xlsx' # Debe venir del Json. Cambiar para despues.
+# Abrimos el Json.
+with open("C:\\Users\\everis\\Documents\\Python\\Json\\Tutorial\\data\\data.json") as data:
 
-# Abrimos el WorkBook
-wb = xlrd.open_workbook(myExcel)
+    # Localidad del Archivo.
+    # Cargamos la Data del Json.
+    excel_data = json.loads(data.read())
 
-# Abrimos el Sheet INFO_DAT
-sheet = wb.sheet_by_index(0)
+    # Hacemos Lectura de la Seccion del Excel_Path
+    myExcel = excel_data['Excel_Path'][0]
 
-excel_Rows = sheet.nrows
+    # Lista de los Valores en el Diccionario 
+    myExcel = list(myExcel.values())
 
-# Obtengo en Numero de filas del DataFrame (con Cabezera)
-df_Rows = len(df_3)
+    # Abrimos el WorkBook
+    wb = xlrd.open_workbook(myExcel[0])
 
-# Creamos la Nueva Columna 'Grupo' llena de Ceros
-df_3[b'Grupo'] = 0
+    # Abrimos el Sheet INFO_DAT
+    sheet = wb.sheet_by_index(0)
 
-print("INICIO")
+    excel_Rows = sheet.nrows
 
-time.sleep(5)
+    # Obtengo en Numero de filas del DataFrame (con Cabezera)
+    df_Rows = len(final_df)
 
-# Recorremos TODAS las Filas del Excel SIN Cabezeras
-for i in range(1, excel_Rows):
+    # Creamos la Nueva Columna 'Grupo' llena de Ceros
+    final_df[b'Grupo'] = 0
 
-    # Recorremos TODAS las Filas del DF SIN Cabezeras
-    for j in range(1, df_Rows):
+    print("INICIO")
 
-        # Comparamos el Excel contra el DF 
-        if ( sheet.cell_value(i, 1) == df_3.iloc[j][b'name:'] ):
-            # Si existe el Match, se hace la Relacion entre el Grupo y el Nombre
-            # Agregamos un Valor a una Fila/Columna especifica. 
-            df_3.loc[j, b'Grupo'] = sheet.cell_value(i, 0)
+    time.sleep(5)
 
-            # Si no Posee Grupo alguno, El Nombre se queda por Default.   
+    # Recorremos TODAS las Filas del Excel SIN Cabezeras
+    for i in range(1, excel_Rows):
 
-        
-print("FIN")
+        # Recorremos TODAS las Filas del DF SIN Cabezeras
+        for j in range(1, df_Rows):
 
-txtFile.write(df_3.to_string())
+            # Comparamos el Excel contra el DF 
+            if ( sheet.cell_value(i, 1) == final_df.iloc[j][b'name:'] ):
+                # Si existe el Match, se hace la Relacion entre el Grupo y el Nombre
+                # Agregamos un Valor a una Fila/Columna especifica. 
+                final_df.loc[j, b'Grupo'] = sheet.cell_value(i, 0)
+                # Si no Posee Grupo alguno, El Nombre se queda por Default.   
 
-txtFile.close()
+    print("FIN :)")
 
-# Guardamos el DF en Excel. 
-#df.to_excel(r'C:\\Users\\everis\\Documents\\Python\\Json\\Tutorial\\data\\Results.xlsx')
+    txtFile.write(final_df.to_string())
 
-print(df_3)
+    txtFile.close()
+
+    # Guardamos el DF en Excel. 
+    #final_df.to_excel(r'C:\\Users\\everis\\Documents\\Python\\Json\\Tutorial\\data\\Results.xlsx')
+
+    print(final_df)
