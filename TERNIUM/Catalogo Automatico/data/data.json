@@ -1,0 +1,19 @@
+{
+    "dfGroups" : [
+        {
+            "beginmodule" : "beginmodule:",
+            "name" : "name:",
+            "imageIndex" : "imageIndex:",
+            "signalCount" : "signalCount:"
+        }
+    ],
+
+    "dfSignals" : [
+        {
+            "beginchannel" : "beginchannel:",
+            "name" : "name:",
+            "unit" : "unit:",
+            "maxscale" : "maxscale:"
+        }
+    ]
+}
