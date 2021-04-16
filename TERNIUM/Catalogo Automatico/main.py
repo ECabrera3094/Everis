@@ -39,7 +39,7 @@ def create_dfGroups():
         myDAT_File = myDAT_File.readlines()
 
         # Archivo para Guardar la Informacion Correcta.
-        txtFile = open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\results\\Save_Data.txt", 'w')
+        txtFile = open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\results\\Data_Groups.txt", 'w+')
 
         # Creamos un DataFrame.
         df = pd.DataFrame()
@@ -124,7 +124,7 @@ def create_dfSignals():
         myDAT_File = myDAT_File.readlines()
 
         # Archivo para Guardar la Informacion Correcta.
-        txtFile = open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\results\\Save_Data.txt", 'w')
+        txtFile = open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\results\\Data_Signals.txt", 'w+')
 
         # Creamos un DataFrame.
         df = pd.DataFrame()
@@ -179,14 +179,12 @@ def create_dfSignals():
 
             dfSignals[listFinal_Values[i]] = copy_df
 
-        # Ordenamos Alfabeticamente de A a Z (True).
-        #dfSignals = dfSignals.sort_values(by=[b'name:'], ascending = True)
         txtFile.write(dfSignals.to_string())
 
         print("FIN")
 
 if __name__ == '__main__':
 
-    #create_dfGroups()
+    create_dfGroups()
 
     create_dfSignals()
