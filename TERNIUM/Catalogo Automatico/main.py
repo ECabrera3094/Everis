@@ -1,11 +1,12 @@
 import time
 import xlrd
 import json
+import openpyxl
 import pandas as pd
 
 def create_dfGroups():
 
-    print("Creacion del DF por Grupos: ")
+    print("\nCreacion del DF por Grupos: ")
 
     # Abrimos el Json.
     with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
@@ -88,9 +89,11 @@ def create_dfGroups():
 
         print("FIN")
 
+        return dfGroups
+
 def create_dfSignals():
     
-    print("Creacion del DF por Signal: ")
+    print("\nCreacion del DF por Signal: ")
 
     # Abrimos el Json.
     with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
@@ -183,8 +186,71 @@ def create_dfSignals():
 
         print("FIN")
 
+        return dfSignals
+
+def create_Catalogue(dfGroups, dfSignals):
+    
+    print("\nInicia creacion de Catalogo.")
+
+    # Call a Workbook() function of openpyxl to create a new blank Workbook object.
+    wb = openpyxl.Workbook()
+
+    # Get workbook active sheet from the active attribute.
+    sheet = wb.active
+
+    sheet.title = "Catalogo"
+
+    # -- Creamos todos los Headers del Catalogo.
+    columns_Catalogue = ['Index', 'Grupo', 'Nombre_Grupo', 'Nombre_Senial', 'Channel_Number']
+    
+    for i in range(1, len(columns_Catalogue)):
+        ## NOTA: El Excel empieza con la Celda (1,1)
+        name_Columns_Catalogue = sheet.cell(row = 1, column = i)
+        name_Columns_Catalogue.value = columns_Catalogue[i]
+
+    # -- Llenamos la Columna del Nombre_Grupo.
+    # Lista donde alamcenaremos CADA UNO de los Elementos de (Name * SignalCount) en dfGroups.
+    list_Nombre_Grupo = [] 
+
+    for index, row in dfGroups.iterrows():
+        for i in range( int(row[b'signalCount:']) ):
+            list_Nombre_Grupo.append( row[b'name:'] )
+            
+    # Bandera que Inicializa en 2 porque en 1 esta el Header de la Columna.
+    flag_row = 2
+
+    # Iteramos CADA UNO de los Nombres del Grupo y los Insertamos en las Celdas HACIA ABAJO.
+    for i in range(len(list_Nombre_Grupo)):
+        value_Column_Nombre_Grupo = sheet.cell(row = flag_row, column = 2)
+        value_Column_Nombre_Grupo.value = list_Nombre_Grupo[i]
+        flag_row += 1
+
+    # -- Llenamos la Columna de Nombre_Senial
+    # Lista donde alamcenaremos CADA UNO de los Elementos de (Name) en dfSignals.
+    list_Nombre_Senial = []
+
+    for index, row in dfSignals.iterrows():
+        list_Nombre_Senial.append(row[b'name:'])
+
+    # Bandera que Inicializa en 2 porque en 1 esta el Header de la Columna.
+    flag_row = 2   
+
+    # Iteramos CADA UNO de los Nombres del Grupo y los Insertamos en las Celdas HACIA ABAJO.
+    for i in range(len(list_Nombre_Senial)):
+        value_Column_Nombre_Senial = sheet.cell(row = flag_row, column = 3)
+        value_Column_Nombre_Senial.value = list_Nombre_Senial[i]
+        flag_row += 1
+
+    # Guardamos el Archivo.
+    wb.save("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\results\\Catalogue.xlsx")
+
+    print("FIN")
+
+
 if __name__ == '__main__':
 
-    create_dfGroups()
+    dfGroups = create_dfGroups()
 
-    create_dfSignals()
+    dfSignals = create_dfSignals()
+
+    create_Catalogue(dfGroups, dfSignals)
