@@ -225,7 +225,7 @@ def create_Catalogue(dfGroups, dfSignals):
         value_Column_Nombre_Grupo.value = list_Nombre_Grupo[i]
         flag_row += 1
 
-    # -- Llenamos la Columna de Nombre_Senial
+    # -- Llenamos la Columna del Nombre_Senial
     # Lista donde alamcenaremos CADA UNO de los Elementos de (Name) en dfSignals.
     list_Nombre_Senial = []
 
@@ -239,6 +239,21 @@ def create_Catalogue(dfGroups, dfSignals):
     for i in range(len(list_Nombre_Senial)):
         value_Column_Nombre_Senial = sheet.cell(row = flag_row, column = 3)
         value_Column_Nombre_Senial.value = list_Nombre_Senial[i]
+        flag_row += 1
+
+    # -- Llenamos la Columna del Channel_Number.
+    # Lista donde alamcenaremos CADA UNO de los Elementos de (beginchannel) en dfSignals.
+    list_Channel_Number = []
+
+    for index, row in dfSignals.iterrows():
+        list_Channel_Number.append(row[b'beginchannel:'])
+
+    # Bandera que Inicializa en 2 porque en 1 esta el Header de la Columna.
+    flag_row = 2   
+
+    for i in range(len(list_Channel_Number)):
+        value_Column_Channel_Number = sheet.cell(row = flag_row, column = 4)
+        value_Column_Channel_Number.value = list_Channel_Number[i]
         flag_row += 1
 
     # Guardamos el Archivo.
