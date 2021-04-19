@@ -1,7 +1,9 @@
+import sys
 import time
 import xlrd
 import json
 import openpyxl
+from openpyxl import load_workbook
 import pandas as pd
 
 def create_dfGroups():
@@ -200,15 +202,15 @@ def create_Catalogue(dfGroups, dfSignals):
 
     sheet.title = "Catalogo"
 
-    # -- Creamos todos los Headers del Catalogo.
-    columns_Catalogue = ['Index', 'Grupo', 'Nombre_Grupo', 'Nombre_Senial', 'Channel_Number']
+    # ----- Creamos todos los Headers del Catalogo.
+    columns_Catalogue = ['Index', 'Grupo', 'Nombre_Grupo', 'Nombre_Senial', 'Channel_Number', 'Unit']
     
     for i in range(1, len(columns_Catalogue)):
         ## NOTA: El Excel empieza con la Celda (1,1)
         name_Columns_Catalogue = sheet.cell(row = 1, column = i)
         name_Columns_Catalogue.value = columns_Catalogue[i]
 
-    # -- Llenamos la Columna del Nombre_Grupo.
+    # ----- Llenamos la Columna del Nombre_Grupo. -----
     # Lista donde alamcenaremos CADA UNO de los Elementos de (Name * SignalCount) en dfGroups.
     list_Nombre_Grupo = [] 
 
@@ -225,7 +227,7 @@ def create_Catalogue(dfGroups, dfSignals):
         value_Column_Nombre_Grupo.value = list_Nombre_Grupo[i]
         flag_row += 1
 
-    # -- Llenamos la Columna del Nombre_Senial
+    # ----- Llenamos la Columna del Nombre_Senial
     # Lista donde alamcenaremos CADA UNO de los Elementos de (Name) en dfSignals.
     list_Nombre_Senial = []
 
@@ -241,7 +243,7 @@ def create_Catalogue(dfGroups, dfSignals):
         value_Column_Nombre_Senial.value = list_Nombre_Senial[i]
         flag_row += 1
 
-    # -- Llenamos la Columna del Channel_Number.
+    # ----- Llenamos la Columna del Channel_Number.
     # Lista donde alamcenaremos CADA UNO de los Elementos de (beginchannel) en dfSignals.
     list_Channel_Number = []
 
@@ -256,11 +258,171 @@ def create_Catalogue(dfGroups, dfSignals):
         value_Column_Channel_Number.value = list_Channel_Number[i]
         flag_row += 1
 
+    # ----- Llenamos la Columna del Unit.
+    # Lista donde alamcenaremos CADA UNO de los Elementos de (unit) en dfSignals.
+    list_Unit = []
+
+    for index, row in dfSignals.iterrows():
+        list_Unit.append(row[b'unit:'])
+
+    # Bandera que Inicializa en 2 porque en 1 esta el Header de la Columna.
+    flag_row = 2   
+    
+    for i in range(len(list_Unit)):
+        value_Column_Unit = sheet.cell(row = flag_row, column = 5)
+        value_Column_Unit.value = list_Unit[i]
+        flag_row += 1
+
+    # ----------------------------------------------#
+
+    print("\nInicia creacion del Match.")
+
+    # Abrimos el Json.
+    with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
+
+        # Cargamos la Data del Json.
+        INFO = json.loads(data.read())
+
+        # Obtenemos el Diccionario del Json.
+        INFO = INFO['INFO'][0]
+        
+        # Del Diccionario obtenemos los Valores y los transformamos a una Lista.
+        INFO_Path = list(INFO.values())
+
+        # Cargamos el INFO Excel para comenzar el Match
+        INFO_wb = load_workbook(INFO_Path[0])
+        
+        # Get workbook active sheet from the active attribute.
+        INFO_sheet = INFO_wb.active
+
+        # Contamos el Total de Filas de CADA Excel.
+        INFO_Row_Count = INFO_sheet.max_row
+
+        Catalogue_Row_Count = sheet.max_row
+
+        # Validamos si Existe un Desfase en la Cantidad de Informacion.
+        if (INFO_Row_Count == Catalogue_Row_Count):
+            print("Existe la Misma Cantidad de Informacion.")
+        else:
+            print("Existe un Desfase en la Informacion.")
+            sys.exit()
+
+        # Catalogo -> INFO -> Match
+        for i in range(2, Catalogue_Row_Count):
+
+            for j in range(2, INFO_Row_Count):
+
+                # Validamos si la Columna 3 esta de INFO Vacia.
+                # Si esta VACIA, se valida la Senial.
+                # Sino se pasa a la Siguiente Linea.
+                ## NOTA: El Excel empieza con la Celda (1,1)
+                myEmpty_cell = INFO_sheet.cell(row = j, column = 3)
+
+                # Si la Celda SI ESTA VACIA.
+                if myEmpty_cell.value is None:
+
+                    # ----- Comparamos la Senial de INFO contra Nombre_Senial del Catalogo.
+                    if (INFO_sheet.cell(row = j, column = 2).value == sheet.cell(row = i, column = 3).value): 
+
+                        # 1.- Colocar una Bandera a INFO para que ya no cuente ese Match
+                        myEmpty_cell.value = 1
+
+                        # 2.- Debo Obtener el Valor del Grupo en INFO.
+                        match_Group = INFO_sheet.cell(row = j, column = 1)
+                        match_Group = match_Group.value
+
+                        # 3.- Debo Guardar el Match en el Catlogo
+                        exact_Match = sheet.cell(row = i, column = 1)
+                        exact_Match.value = match_Group
+                else:
+                    # Si la Celda NO ESTA VACIA.
+                    pass
+
+    # ----------------------------------------------#
+
     # Guardamos el Archivo.
     wb.save("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\results\\Catalogue.xlsx")
 
+    wb.close()
+
     print("FIN")
 
+    return wb
+
+def generate_Match(catalogue_WB):
+
+    catalogue_WB = openpyxl.Workbook()
+
+    catalogue_Sheet = catalogue_WB.active
+
+    print("\nInicia creacion del Match.")
+
+    # Abrimos el Json.
+    with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
+
+        # Cargamos la Data del Json.
+        INFO = json.loads(data.read())
+
+        # Obtenemos el Diccionario del Json.
+        INFO = INFO['INFO'][0]
+        
+        # Del Diccionario obtenemos los Valores y los transformamos a una Lista.
+        INFO_Path = list(INFO.values())
+
+        # Cargamos el INFO Excel para comenzar el Match
+        INFO_wb = load_workbook(INFO_Path[0])
+        
+        # Get workbook active sheet from the active attribute.
+        INFO_sheet = INFO_wb.active
+
+        # Contamos el Total de Filas de CADA Excel.
+        INFO_Row_Count = INFO_sheet.max_row
+
+        Catalogue_Row_Count = catalogue_Sheet.max_row
+
+        print(INFO_Row_Count, ' == ', Catalogue_Row_Count)
+
+        # Validamos si Existe un Desfase en la Cantidad de Informacion.
+        if (INFO_Row_Count == Catalogue_Row_Count):
+            print("Existe la Misma Cantidad de Informacion.")
+        else:
+            print("Existe un Desfase en la Informacion.")
+            sys.exit()
+        
+        # Catalogo -> INFO -> Match
+        for i in range(2, Catalogue_Row_Count):
+
+            for j in range(2, INFO_Row_Count):
+
+                # Validamos si la Columna 3 esta de INFO Vacia.
+                # Si esta VACIA, se valida la Senial.
+                # Sino se pasa a la Siguiente Linea.
+                ## NOTA: El Excel empieza con la Celda (1,1)
+                myEmpty_cell = INFO_sheet.cell(row = j, column = 3)
+
+                # Si la Celda SI ESTA VACIA.
+                if myEmpty_cell.value is None:
+
+                    # ----- Comparamos la Senial de INFO contra Nombre_Senial del Catalogo.
+                    if (INFO_sheet.cell(row = j, column = 2).value == catalogue_Sheet.cell(row = i, column = 3).value): 
+
+                        # 1.- Colocar una Bandera a INFO para que ya no cuente ese Match
+                        myEmpty_cell.value = 1
+
+                        # 2.- Debo Obtener el Valor del Grupo en INFO.
+                        match_Group = INFO_sheet.cell(row = j, column = 1)
+                        match_Group = match_Group.value
+                        
+                        # 3.- Debo Guardar el Match en el Catlogo
+                        exact_Match = catalogue_Sheet.cell(row = i, column = 1)
+                        exact_Match.value = match_Group  
+                else: 
+                    # Si la Celda NO ESTA VACIA.
+                    pass
+    
+    catalogue_WB.save("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\results\\Catalogue.xlsx")
+
+    print("FIN")
 
 if __name__ == '__main__':
 
@@ -268,4 +430,4 @@ if __name__ == '__main__':
 
     dfSignals = create_dfSignals()
 
-    create_Catalogue(dfGroups, dfSignals)
+    catalogue_WB = create_Catalogue(dfGroups, dfSignals)
