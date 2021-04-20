@@ -310,12 +310,12 @@ def create_Catalogue(dfGroups, dfSignals):
         # Catalogo -> INFO -> Match
         for i in range(2, Catalogue_Row_Count):
 
-            for j in range(2, INFO_Row_Count):
+            for j in range(2,  INFO_Row_Count):
 
                 # Validamos si la Columna 3 esta de INFO Vacia.
                 # Si esta VACIA, se valida la Senial.
                 # Sino se pasa a la Siguiente Linea.
-                ## NOTA: El Excel empieza con la Celda (1,1)
+                ######## NOTA: El Excel empieza con la Celda (1, 1)
                 myEmpty_cell = INFO_sheet.cell(row = j, column = 3)
 
                 # Si la Celda SI ESTA VACIA.
@@ -324,7 +324,7 @@ def create_Catalogue(dfGroups, dfSignals):
                     # ----- Comparamos la Senial de INFO contra Nombre_Senial del Catalogo.
                     if (INFO_sheet.cell(row = j, column = 2).value == sheet.cell(row = i, column = 3).value): 
 
-                        # 1.- Colocar una Bandera a INFO para que ya no cuente ese Match
+                        # 1.- Colocar una Bandera a INFO para que ya no cuente ese Match.
                         myEmpty_cell.value = 1
 
                         # 2.- Debo Obtener el Valor del Grupo en INFO.
@@ -334,9 +334,20 @@ def create_Catalogue(dfGroups, dfSignals):
                         # 3.- Debo Guardar el Match en el Catlogo
                         exact_Match = sheet.cell(row = i, column = 1)
                         exact_Match.value = match_Group
+
+                        # 4.- Guardamos los cambios en INFO.
+                        INFO_wb.save(INFO_Path[0])
+
+                        break
+
                 else:
                     # Si la Celda NO ESTA VACIA.
                     pass
+                
+                # AQUI NO
+
+                # AQUI NO
+            # AQUI NO
 
     # ----------------------------------------------#
 
@@ -345,84 +356,11 @@ def create_Catalogue(dfGroups, dfSignals):
 
     wb.close()
 
+    INFO_wb.close()
+
     print("FIN")
 
     return wb
-
-def generate_Match(catalogue_WB):
-
-    catalogue_WB = openpyxl.Workbook()
-
-    catalogue_Sheet = catalogue_WB.active
-
-    print("\nInicia creacion del Match.")
-
-    # Abrimos el Json.
-    with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
-
-        # Cargamos la Data del Json.
-        INFO = json.loads(data.read())
-
-        # Obtenemos el Diccionario del Json.
-        INFO = INFO['INFO'][0]
-        
-        # Del Diccionario obtenemos los Valores y los transformamos a una Lista.
-        INFO_Path = list(INFO.values())
-
-        # Cargamos el INFO Excel para comenzar el Match
-        INFO_wb = load_workbook(INFO_Path[0])
-        
-        # Get workbook active sheet from the active attribute.
-        INFO_sheet = INFO_wb.active
-
-        # Contamos el Total de Filas de CADA Excel.
-        INFO_Row_Count = INFO_sheet.max_row
-
-        Catalogue_Row_Count = catalogue_Sheet.max_row
-
-        print(INFO_Row_Count, ' == ', Catalogue_Row_Count)
-
-        # Validamos si Existe un Desfase en la Cantidad de Informacion.
-        if (INFO_Row_Count == Catalogue_Row_Count):
-            print("Existe la Misma Cantidad de Informacion.")
-        else:
-            print("Existe un Desfase en la Informacion.")
-            sys.exit()
-        
-        # Catalogo -> INFO -> Match
-        for i in range(2, Catalogue_Row_Count):
-
-            for j in range(2, INFO_Row_Count):
-
-                # Validamos si la Columna 3 esta de INFO Vacia.
-                # Si esta VACIA, se valida la Senial.
-                # Sino se pasa a la Siguiente Linea.
-                ## NOTA: El Excel empieza con la Celda (1,1)
-                myEmpty_cell = INFO_sheet.cell(row = j, column = 3)
-
-                # Si la Celda SI ESTA VACIA.
-                if myEmpty_cell.value is None:
-
-                    # ----- Comparamos la Senial de INFO contra Nombre_Senial del Catalogo.
-                    if (INFO_sheet.cell(row = j, column = 2).value == catalogue_Sheet.cell(row = i, column = 3).value): 
-
-                        # 1.- Colocar una Bandera a INFO para que ya no cuente ese Match
-                        myEmpty_cell.value = 1
-
-                        # 2.- Debo Obtener el Valor del Grupo en INFO.
-                        match_Group = INFO_sheet.cell(row = j, column = 1)
-                        match_Group = match_Group.value
-                        
-                        # 3.- Debo Guardar el Match en el Catlogo
-                        exact_Match = catalogue_Sheet.cell(row = i, column = 1)
-                        exact_Match.value = match_Group  
-                else: 
-                    # Si la Celda NO ESTA VACIA.
-                    pass
-    
-    catalogue_WB.save("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\results\\Catalogue.xlsx")
-
-    print("FIN")
 
 if __name__ == '__main__':
 
