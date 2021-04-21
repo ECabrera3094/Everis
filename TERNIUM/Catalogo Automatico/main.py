@@ -161,10 +161,11 @@ def create_dfSignals():
                         newString = newString.strip("\r\n")
 
                         # Eliminamos las Comillas en caso de que Existan al Principio y Fin.
-                        newString = newString.strip('\"')
+                        newString = newString.rstrip('\"')
 
-                        # eliminamos las Comillas en caso de que Existan al Principio....otra vez.
-                        newString = newString.replace('"', '')
+                        newString = newString.lstrip('\"')
+
+                        newString = newString.strip('\"')
 
                         # Buscamos los Elementos que estan Despues de los (:)
                         # El Split (char, 1) SOLO dividira hasta la PRIMERA APARICION del Char.
