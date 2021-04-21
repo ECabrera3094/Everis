@@ -6,6 +6,8 @@ import openpyxl
 from openpyxl import load_workbook
 import pandas as pd
 
+start_time = time.time()
+
 def create_dfGroups():
 
     print("\nCreacion del DF por Grupos: ")
@@ -154,18 +156,16 @@ def create_dfSignals():
                         # Transformamos a UTF-8.
                         newString = eachLine.decode(encoding = "utf-8")
                         
-                        # Eliminamos posibles Espacios Vacios 
+                        # Eliminamos PRIMERO posibles Espacios Vacios 
                         newString = newString.strip()
 
                         # Eliminamos el Tabulador y el Salto de Linea.
                         newString = newString.strip("\r\n")
 
                         # Eliminamos las Comillas en caso de que Existan al Principio y Fin.
-                        newString = newString.rstrip('\"')
-
-                        newString = newString.lstrip('\"')
-
-                        newString = newString.strip('\"')
+                        newString = newString.lstrip('"')
+                        
+                        newString = newString.rstrip('"')
 
                         # Buscamos los Elementos que estan Despues de los (:)
                         # El Split (char, 1) SOLO dividira hasta la PRIMERA APARICION del Char.
@@ -369,8 +369,6 @@ def create_Catalogue(dfGroups, dfSignals):
                 myEmpty_cell = INFO_sheet.cell(row = j, column = 3)
 
                 if (myEmpty_cell.value is None) and (sheet.cell(row = i, column = 3).value in [None,'None' ,'']):
-                    
-                    print(i, j, ": ", myEmpty_cell.value, " == ", sheet.cell(row = i, column = 3).value)
 
                     # 1.- Colocar una Bandera a INFO para que ya no cuente ese Match.
                     myEmpty_cell.value = 1
@@ -383,7 +381,11 @@ def create_Catalogue(dfGroups, dfSignals):
                     exact_Match = sheet.cell(row = i, column = 1)
                     exact_Match.value = match_Group
 
-                    # 4.- Guardamos los cambios en INFO.
+                    # 4.- Al NO tener Nombre, el Grupo pasa a ser el Nombre.
+                    excat_Name = sheet.cell(row = i, column = 3)
+                    excat_Name.value = match_Group
+
+                    # 5.- Guardamos los cambios en INFO.
                     INFO_wb.save(INFO_Path[0])
 
                     break
@@ -403,6 +405,10 @@ def create_Catalogue(dfGroups, dfSignals):
 
     return wb
 
+def save_Final_Data():
+
+    pass
+
 if __name__ == '__main__':
 
     dfGroups = create_dfGroups()
@@ -410,3 +416,5 @@ if __name__ == '__main__':
     dfSignals = create_dfSignals()
 
     catalogue_WB = create_Catalogue(dfGroups, dfSignals)
+
+    print("--- %s seconds ---" % (time.time() - start_time))
