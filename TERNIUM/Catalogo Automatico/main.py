@@ -312,9 +312,9 @@ def create_Catalogue(dfGroups, dfSignals):
 
         # Validamos si Existe un Desfase en la Cantidad de Informacion.
         if (INFO_Row_Count == Catalogue_Row_Count):
-            print("Existe la Misma Cantidad de Informacion.")
+            print("> Existe la Misma Cantidad de Informacion.")
         else:
-            print("Existe un Desfase en la Informacion.")
+            print("> Existe un Desfase en la Informacion.")
             sys.exit()
 
         # Catalogo -> INFO -> Match
@@ -353,11 +353,41 @@ def create_Catalogue(dfGroups, dfSignals):
                 else:
                     # Si la Celda NO ESTA VACIA.
                     pass
-                
-                # AQUI NO
 
-                # AQUI NO
-            # AQUI NO
+        # -- Analizamos las Posiciones Vacias.
+        print("\nAnalizamos las Posiciones Vacias.")
+        # Catalogo -> INFO -> Match
+        for i in range(2, Catalogue_Row_Count):
+
+            for j in range(2,  INFO_Row_Count):
+
+                # Validamos si la Columna 3 esta de INFO Vacia.
+                # Si esta VACIA, se valida la Senial.
+                # Sino se pasa a la Siguiente Linea.
+                ######## NOTA: El Excel empieza con la Celda (1, 1)
+                myEmpty_cell = INFO_sheet.cell(row = j, column = 3)
+
+                if (myEmpty_cell.value is None) and (sheet.cell(row = i, column = 3).value in [None,'None' ,'']):
+                    
+                    print(i, j, ": ", myEmpty_cell.value, " == ", sheet.cell(row = i, column = 3).value)
+
+                    # 1.- Colocar una Bandera a INFO para que ya no cuente ese Match.
+                    myEmpty_cell.value = 1
+
+                    # 2.- Debo Obtener el Valor del Grupo en INFO.
+                    match_Group = INFO_sheet.cell(row = j, column = 1)
+                    match_Group = match_Group.value
+
+                    # 3.- Debo Guardar el Match en el Catlogo
+                    exact_Match = sheet.cell(row = i, column = 1)
+                    exact_Match.value = match_Group
+
+                    # 4.- Guardamos los cambios en INFO.
+                    INFO_wb.save(INFO_Path[0])
+
+                    break
+                else:
+                    pass
 
     # ----------------------------------------------#
 
