@@ -154,11 +154,21 @@ def create_dfSignals():
                         # Transformamos a UTF-8.
                         newString = eachLine.decode(encoding = "utf-8")
                         
+                        # Eliminamos posibles Espacios Vacios 
+                        newString = newString.strip()
+
                         # Eliminamos el Tabulador y el Salto de Linea.
                         newString = newString.strip("\r\n")
 
+                        # Eliminamos las Comillas en caso de que Existan al Principio y Fin.
+                        newString = newString.strip('\"')
+
+                        # eliminamos las Comillas en caso de que Existan al Principio....otra vez.
+                        newString = newString.replace('"', '')
+
                         # Buscamos los Elementos que estan Despues de los (:)
-                        newString = newString.split(":")
+                        # El Split (char, 1) SOLO dividira hasta la PRIMERA APARICION del Char.
+                        newString = newString.split(":", 1)
 
                         nameColumn = listFinal_Values[i]
 
