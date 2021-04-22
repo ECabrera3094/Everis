@@ -35,8 +35,6 @@ def create_dfGroups():
             # Lo Guardamos en la Lista que Usaremos.
             listFinal_Values.append(byteData)
 
-        print("Lista Final de Valores: ", listFinal_Values)
-
     # Abrimos el .DAT
     with open('C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\AM2_MCC1_7944.dat', 'rb') as myDAT_File:
 
@@ -122,8 +120,6 @@ def create_dfSignals():
             # Lo Guardamos en la Lista que Usaremos.
             listFinal_Values.append(byteData)
 
-        print("Lista Final de Valores: ", listFinal_Values)
-
     # Abrimos el .DAT
     with open('C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\AM2_MCC1_7944.dat', 'rb') as myDAT_File:
 
@@ -166,6 +162,10 @@ def create_dfSignals():
                         newString = newString.lstrip('"')
                         
                         newString = newString.rstrip('"')
+
+                        newString = newString.lstrip('\"')
+                        
+                        newString = newString.rstrip('\"')
 
                         # Buscamos los Elementos que estan Despues de los (:)
                         # El Split (char, 1) SOLO dividira hasta la PRIMERA APARICION del Char.
@@ -266,7 +266,12 @@ def create_Catalogue(dfGroups, dfSignals):
 
     for i in range(len(list_Channel_Number)):
         value_Column_Channel_Number = sheet.cell(row = flag_row, column = 4)
-        value_Column_Channel_Number.value = list_Channel_Number[i]
+        # Agregamos 0000 .
+        if (int(list_Channel_Number[i]) <= 999):
+            value_Column_Channel_Number.value = '%04d' % int(list_Channel_Number[i])
+        else:
+            value_Column_Channel_Number.value = int(list_Channel_Number[i])
+
         flag_row += 1
 
     # ----- Llenamos la Columna del Unit.
@@ -403,11 +408,46 @@ def create_Catalogue(dfGroups, dfSignals):
 
     print("FIN")
 
-    return wb
+    ##return wb
 
 def save_Final_Data():
 
-    pass
+    # Abrimos el Json.
+    with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
+
+        print("\nCreacion de Parquet.")
+
+        # ----- Obtenemos Ruta para Obtener el Excel y Convertirlo a DataFrame.
+
+        # Cargamos la Data del Json.
+        save_Path = json.loads(data.read())
+
+        # Obtenemos el Diccionario del Json.
+        save_Path = save_Path['Save Path'][0]
+        
+        # Del Diccionario obtenemos los Valores y los transformamos a una Lista.
+        save_Path = list(save_Path.values())
+
+        # Leemos el Excel como DataFrame.
+        client_DF = pd.read_excel(save_Path[0])
+
+        # ----- Obtenemos Ruta para Almacenar el Parquet.
+
+    # Abrimos el Json.
+    with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
+        # Cargamos la Data del Json.
+        parquet_Path = json.loads(data.read())
+
+        # Obtenemos el Diccionario del Json.
+        parquet_Path = parquet_Path['Parquet Path'][0]
+
+        # Del Diccionario obtenemos los Valores y los transformamos a una Lista.
+        parquet_Path = list(parquet_Path.values())
+
+        # Convertirmos el DataFrame a Parquet y lo almacenamos en la Ruta Obtenida.
+        client_DF.to_parquet(parquet_Path[0])
+
+        print("FIN")
 
 if __name__ == '__main__':
 
@@ -415,6 +455,8 @@ if __name__ == '__main__':
 
     dfSignals = create_dfSignals()
 
-    catalogue_WB = create_Catalogue(dfGroups, dfSignals)
+    create_Catalogue(dfGroups, dfSignals)
+
+    save_Final_Data()
 
     print("--- %s seconds ---" % (time.time() - start_time))
