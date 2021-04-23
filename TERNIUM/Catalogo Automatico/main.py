@@ -12,7 +12,7 @@ def create_dfGroups():
 
     print("\nCreacion del DF por Grupos: ")
 
-    # Abrimos el Json.
+    # Abrimos el Json para la Lectura de las Columnas del Grupo.
     with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
 
         # Cargamos la Data del Json.
@@ -27,6 +27,7 @@ def create_dfGroups():
         # Lista Final que usaremos para almacenar las Columnas del DF.
         listFinal_Values = []
 
+        # Para cada Valor en la Lista de Valores.
         for eachValue in listValues:
 
             # Convertimos cada Valor a Byte ya que Trabajaremos con el .Dat
@@ -35,14 +36,43 @@ def create_dfGroups():
             # Lo Guardamos en la Lista que Usaremos.
             listFinal_Values.append(byteData)
 
+    # Abrimos el Json para la Lectura de la Ruta del .DAT.
+    with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
+
+        # Cargamos la Data del Json.
+        DAT_File = json.loads(data.read())
+
+        # Obtenemos el Diccionario del Json.
+        DAT_File = DAT_File['DAT'][0]
+
+        # Del Diccionario obtenemos los Valores y los transformamos a una Lista.
+        path_DAT_File = list(DAT_File.values())
+
+        path_DAT_File = path_DAT_File[0]    
+
     # Abrimos el .DAT
-    with open('C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\AM2_MCC1_7944.dat', 'rb') as myDAT_File:
+    with open(path_DAT_File, 'rb') as myDAT_File:
 
         # Lectura del .DAT
         myDAT_File = myDAT_File.readlines()
 
+    # -- Obtenemos la Ruta para Guadra el TXT del Grupo.
+    # Abrimos el Json para la Lectura de la Ruta del TXT del Grupo.
+    with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
+        
+        # Cargamos la Data del Json.
+        txt_File = json.loads(data.read())
+
+        # Obtenemos el Diccionario del Json.
+        txt_File = txt_File['txt_Data_Groups'][0]
+
+        # Del Diccionario obtenemos los Valores y los transformamos a una Lista.
+        txt_Path_File = list(txt_File.values())
+
+        txt_Path_File = txt_Path_File[0]
+
         # Archivo para Guardar la Informacion Correcta.
-        txtFile = open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\results\\Data_Groups.txt", 'w+')
+        txtFile = open(txt_Path_File, 'w+')
 
         # Creamos un DataFrame.
         df = pd.DataFrame()
@@ -120,14 +150,43 @@ def create_dfSignals():
             # Lo Guardamos en la Lista que Usaremos.
             listFinal_Values.append(byteData)
 
+    # Abrimos el Json para la Lectura de la Ruta del .DAT.
+    with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
+
+        # Cargamos la Data del Json.
+        DAT_File = json.loads(data.read())
+
+        # Obtenemos el Diccionario del Json.
+        DAT_File = DAT_File['DAT'][0]
+
+        # Del Diccionario obtenemos los Valores y los transformamos a una Lista.
+        path_DAT_File = list(DAT_File.values())
+
+        path_DAT_File = path_DAT_File[0] 
+
     # Abrimos el .DAT
-    with open('C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\AM2_MCC1_7944.dat', 'rb') as myDAT_File:
+    with open(path_DAT_File, 'rb') as myDAT_File:
 
         # Lectura del .DAT
         myDAT_File = myDAT_File.readlines()
 
+    # -- Obtenemos la Ruta para Guadra el TXT del Grupo.
+    # Abrimos el Json para la Lectura de la Ruta del TXT del Grupo.
+    with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
+        
+        # Cargamos la Data del Json.
+        txt_File = json.loads(data.read())
+
+        # Obtenemos el Diccionario del Json.
+        txt_File = txt_File['txt_Data_Signals'][0]
+
+        # Del Diccionario obtenemos los Valores y los transformamos a una Lista.
+        txt_Path_File = list(txt_File.values())
+
+        txt_Path_File = txt_Path_File[0]
+
         # Archivo para Guardar la Informacion Correcta.
-        txtFile = open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\results\\Data_Signals.txt", 'w+')
+        txtFile = open(txt_Path_File, 'w+')
 
         # Creamos un DataFrame.
         df = pd.DataFrame()
@@ -336,9 +395,17 @@ def create_Catalogue(dfGroups, dfSignals):
 
                 # Si la Celda SI ESTA VACIA.
                 if myEmpty_cell.value is None:
+                    
+                    # Volvemos a tratar el Problema de las "", tratando de Eliminarlos
+                    text_INFO = str(INFO_sheet.cell(row = j, column = 2).value)
+                    text_INFO = text_INFO.replace('"', '').strip()
+
+                    text_Sheet = str(sheet.cell(row = i, column = 3).value)
+                    text_Sheet = text_Sheet.replace('"', '').strip()
+
 
                     # ----- Comparamos la Senial de INFO contra Nombre_Senial del Catalogo.
-                    if (INFO_sheet.cell(row = j, column = 2).value == sheet.cell(row = i, column = 3).value): 
+                    if (text_INFO == text_Sheet): 
 
                         # 1.- Colocar una Bandera a INFO para que ya no cuente ese Match.
                         myEmpty_cell.value = 1
@@ -398,26 +465,38 @@ def create_Catalogue(dfGroups, dfSignals):
                     pass
 
     # ----------------------------------------------#
-
-    # Guardamos el Archivo.
-    wb.save("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\results\\Catalogue.xlsx")
-
-    wb.close()
-
-    INFO_wb.close()
-
-    print("FIN")
-
-    ##return wb
-
-def save_Final_Data():
+    # Guardamos el Catalogo en formato Excel.
 
     # Abrimos el Json.
     with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
 
-        print("\nCreacion de Parquet.")
+        # Cargamos la Data del Json.
+        save_Path = json.loads(data.read())
 
-        # ----- Obtenemos Ruta para Obtener el Excel y Convertirlo a DataFrame.
+        # Obtenemos el Diccionario del Json.
+        save_Path = save_Path['Save Path'][0]
+        
+        # Del Diccionario obtenemos los Valores y los transformamos a una Lista.
+        save_Path = list(save_Path.values())
+
+        save_Path = save_Path[0]
+
+        # Guardamos el Archivo.
+        wb.save(save_Path)
+
+        wb.close()
+
+        INFO_wb.close()
+
+        print("FIN")
+
+def save_Final_Data():
+
+    # ----- Obtenemos Ruta para Obtener el Excel y Convertirlo a DataFrame.
+    # Abrimos el Json.
+    with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
+
+        print("\nCreacion de Parquet.")
 
         # Cargamos la Data del Json.
         save_Path = json.loads(data.read())
@@ -431,8 +510,7 @@ def save_Final_Data():
         # Leemos el Excel como DataFrame.
         client_DF = pd.read_excel(save_Path[0])
 
-        # ----- Obtenemos Ruta para Almacenar el Parquet.
-
+    # ----- Obtenemos Ruta para Almacenar el Parquet.
     # Abrimos el Json.
     with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
         # Cargamos la Data del Json.
