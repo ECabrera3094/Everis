@@ -15,5 +15,41 @@
             "unit" : "unit:",
             "maxscale" : "maxscale:"
         }
+    ],
+
+    "DAT" : [
+        {
+            "DAT" : "C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\AM2_MCC1_7944.dat"
+        }
+    ],
+
+    "INFO" : [
+        {
+            "INFO" : "C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\INFO.xlsx"
+        }
+    ],
+
+    "txt_Data_Groups" : [
+        {
+            "txt_Data_Groups" : "C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\results\\Data_Groups.txt"
+        }
+    ],
+
+    "txt_Data_Signals" : [
+        {
+            "txt_Data_Signals" : "C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\results\\Data_Signals.txt"
+        }
+    ],
+
+    "Save Path" : [
+        {
+            "path" : "C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\results\\Catalogue.xlsx"
+        }
+    ], 
+
+    "Parquet Path" : [
+        {
+            "path" : "C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\results\\Catalogue.parquet"
+        }
     ]
 }
