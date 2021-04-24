@@ -208,8 +208,11 @@ def create_dfSignals():
                     # Validacion si la Palabra Clave aparece en el Archivo.
                     if (listFinal_Values[i] in eachLine):
 
+                        # Transformamos a ISO-8859-1
+                        newString = eachLine.decode(encoding = "ISO-8859-1")
+
                         # Transformamos a UTF-8.
-                        newString = eachLine.decode(encoding = "utf-8")
+                        #newString = eachLine.decode(encoding = "utf-8")
                         
                         # Eliminamos PRIMERO posibles Espacios Vacios 
                         newString = newString.strip()
@@ -250,7 +253,7 @@ def create_dfSignals():
 
             copy_df = copy_df.dropna()
 
-            copy_df = copy_df.reset_index(drop=True)
+            copy_df = copy_df.reset_index(drop = True)
 
             dfSignals[listFinal_Values[i]] = copy_df
 
@@ -299,10 +302,10 @@ def create_Catalogue(dfGroups, dfSignals):
 
     # ----- Llenamos la Columna del Nombre_Senial
     # Lista donde alamcenaremos CADA UNO de los Elementos de (Name) en dfSignals.
-    list_Nombre_Senial = []
+    list_Nombre_Senial = [row[b'name:'] for index, row in dfSignals.iterrows()]
 
-    for index, row in dfSignals.iterrows():
-        list_Nombre_Senial.append(row[b'name:'])
+    #for index, row in dfSignals.iterrows():
+        #list_Nombre_Senial.append(row[b'name:'])
 
     # Bandera que Inicializa en 2 porque en 1 esta el Header de la Columna.
     flag_row = 2   
@@ -315,15 +318,16 @@ def create_Catalogue(dfGroups, dfSignals):
 
     # ----- Llenamos la Columna del Channel_Number.
     # Lista donde alamcenaremos CADA UNO de los Elementos de (beginchannel) en dfSignals.
-    list_Channel_Number = []
+    list_Channel_Number = [row[b'beginchannel:'] for index, row in dfSignals.iterrows()]
 
-    for index, row in dfSignals.iterrows():
-        list_Channel_Number.append(row[b'beginchannel:'])
+    #for index, row in dfSignals.iterrows():
+        #list_Channel_Number.append(row[b'beginchannel:'])
 
     # Bandera que Inicializa en 2 porque en 1 esta el Header de la Columna.
     flag_row = 2   
 
     for i in range(len(list_Channel_Number)):
+
         value_Column_Channel_Number = sheet.cell(row = flag_row, column = 4)
         # Agregamos 0000 .
         if (int(list_Channel_Number[i]) <= 999):
@@ -335,10 +339,10 @@ def create_Catalogue(dfGroups, dfSignals):
 
     # ----- Llenamos la Columna del Unit.
     # Lista donde alamcenaremos CADA UNO de los Elementos de (unit) en dfSignals.
-    list_Unit = []
+    list_Unit = [row[b'unit:'] for index, row in dfSignals.iterrows()]
 
-    for index, row in dfSignals.iterrows():
-        list_Unit.append(row[b'unit:'])
+    #for index, row in dfSignals.iterrows():
+        #list_Unit.append(row[b'unit:'])
 
     # Bandera que Inicializa en 2 porque en 1 esta el Header de la Columna.
     flag_row = 2   
@@ -351,6 +355,8 @@ def create_Catalogue(dfGroups, dfSignals):
     # ----------------------------------------------#
 
     print("\nInicia creacion del Match.")
+    print("AQUI")
+    sys.exit()
 
     # Abrimos el Json.
     with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
@@ -403,7 +409,6 @@ def create_Catalogue(dfGroups, dfSignals):
                     text_Sheet = str(sheet.cell(row = i, column = 3).value)
                     text_Sheet = text_Sheet.replace('"', '').strip()
 
-
                     # ----- Comparamos la Senial de INFO contra Nombre_Senial del Catalogo.
                     if (text_INFO == text_Sheet): 
 
@@ -422,7 +427,6 @@ def create_Catalogue(dfGroups, dfSignals):
                         INFO_wb.save(INFO_Path[0])
 
                         break
-
                 else:
                     # Si la Celda NO ESTA VACIA.
                     pass
