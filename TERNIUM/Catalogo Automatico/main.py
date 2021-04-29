@@ -2,6 +2,7 @@ import sys
 import time
 import json
 import openpyxl
+import numpy as np
 import pandas as pd
 from openpyxl import load_workbook
 
@@ -198,12 +199,13 @@ def create_dfSignals():
 
                     # Validacion si la Palabra Clave aparece en el Archivo.
                     if (listFinal_Values[i] in eachLine):
-
-                        # Transformamos a ISO-8859-1
-                        newString = eachLine.decode(encoding = "ISO-8859-1")
-
-                        # Transformamos a UTF-8.
-                        #newString = eachLine.decode(encoding = "utf-8")
+                        
+                        try:
+                            # Transformamos a UTF-8.
+                            newString = eachLine.decode(encoding = "utf-8")
+                        except:
+                            # Transformamos a ISO-8859-1
+                            newString = eachLine.decode(encoding = "ISO-8859-1")
                         
                         # Eliminamos PRIMERO posibles Espacios Vacios 
                         newString = newString.strip()
@@ -263,7 +265,7 @@ def create_Catalogue(dfGroups, dfSignals):
     sheet.title = "Catalogo"
 
     # ----- Creamos todos los Headers del Catalogo.
-    columns_Catalogue = ['Index', 'Grupo', 'Nombre_Grupo', 'Nombre_Senial', 'Channel_Number', 'Unit']
+    columns_Catalogue = ['Index', 'Grupo', 'Nombre_Grupo', 'Nombre_Senial', 'Channel_Number', 'Unit', 'Nombre_IBA']
     
     for i in range(1, len(columns_Catalogue)):
         ## NOTA: El Excel empieza con la Celda (1,1)
@@ -308,14 +310,12 @@ def create_Catalogue(dfGroups, dfSignals):
     flag_row = 2   
 
     for i in range(len(list_Channel_Number)):
-
         value_Column_Channel_Number = sheet.cell(row = flag_row, column = 4)
         # Agregamos 0000 .
         if (int(list_Channel_Number[i]) <= 999):
             value_Column_Channel_Number.value = '%04d' % int(list_Channel_Number[i])
         else:
             value_Column_Channel_Number.value = int(list_Channel_Number[i])
-
         flag_row += 1
 
     # ----- Llenamos la Columna del Unit.
@@ -329,6 +329,55 @@ def create_Catalogue(dfGroups, dfSignals):
         value_Column_Unit = sheet.cell(row = flag_row, column = 5)
         value_Column_Unit.value = list_Unit[i]
         flag_row += 1
+
+    # ----- Llenamos la Columna del Nombre_IBA
+    # Es la Concatenacion del Nombre_Senial en Lowercase y el Channel_Number con 000
+    flag_row = 2
+
+    for i in range(len(list_Nombre_Senial)):
+        # Eliminamos los Espacios y Sustituimos por (_). Convertimos a Minusculas.
+        # Si el Nombre tiene DOBLE ESPACIO, se Sustituye por UNO.
+        # Si la Lista tiene elemento, se trabaja aqui, sino Hasta que se Tenga un Nombre Correcto.
+        if list_Nombre_Senial[i]:
+            name_IBA = list_Nombre_Senial[i].replace(' ', '_').replace("  ", " ").replace('.', '_').lower()
+
+        if (int(list_Channel_Number[i]) <= 999):
+            # Si es Menor a 999, se le asignan 0000.
+            number_IBA = '%04d' % int(list_Channel_Number[i])
+        else:
+            number_IBA = int(list_Channel_Number[i])
+        #Concatemoa el Nombre Final.
+        complete_name_IBA = name_IBA + "_" + str(number_IBA)
+        value_Column_Nombre_IBA = sheet.cell(row = flag_row, column = 6)
+        value_Column_Nombre_IBA.value = complete_name_IBA
+        flag_row += 1
+
+
+    # Guardamos el Catalogo en formato Excel.
+    # Abrimos el Json.
+    with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
+
+        # Cargamos la Data del Json.
+        save_Path = json.loads(data.read())
+
+        # Obtenemos el Diccionario del Json.
+        save_Path = save_Path['Save Path'][0]
+        
+        # Del Diccionario obtenemos los Valores y los transformamos a una Lista.
+        save_Path = list(save_Path.values())
+
+        # Tomamos la Primera Posicion de la Lista
+        save_Path = save_Path[0]
+
+        # Guardamos el Archivo.
+        wb.save(save_Path)
+
+        # Cerramos el Archivo
+        wb.close()
+
+        df_Data_Signals = pd.read_excel(save_Path)
+
+        print("FIN")
 
     # ----------------------------------------------#
     # Iniciamos la Creacion del Match.
@@ -346,127 +395,115 @@ def create_Catalogue(dfGroups, dfSignals):
         # Del Diccionario obtenemos los Valores y los transformamos a una Lista.
         INFO_Path = list(INFO.values())
 
-        # Cargamos el INFO Excel para comenzar el Match
-        INFO_wb = load_workbook(INFO_Path[0])
-        
-        # Get workbook active sheet from the active attribute.
-        INFO_sheet = INFO_wb.active
+        INFO_Path = INFO_Path[0]
 
-        # Validamos si Existe un Desfase en la Cantidad de Informacion.
-        if (INFO_sheet.max_row == sheet.max_row):
-            print("> Existe la Misma Cantidad de Informacion.")
-        else:
-            print("> Existe un Desfase en la Informacion.")
-            sys.exit()
+        df_INFO = pd.read_excel(INFO_Path)
 
-        # Catalogo -> INFO -> Match
-        for i in range(2, sheet.max_row):
+    # Convertimos los DataFrames, que estan en formato Excel, en CSV.
+    df_Data_Signals.to_csv("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\results\\Catalogue.csv")
+    df_INFO.to_csv("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\INFO.csv")
 
-            for j in range(2,  INFO_sheet.max_row):
+    # Leemos los CSV
+    df_Data_Signals = pd.read_csv("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\results\\Catalogue.csv", dtype = str)
+    df_INFO = pd.read_csv("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\INFO.csv", dtype = str)
 
-                # Validamos si la Columna 3 esta de INFO Vacia.
-                # Si esta VACIA, se valida la Senial.
-                # Sino se pasa a la Siguiente Linea.
-                ######## NOTA: El Excel empieza con la Celda (1, 1)
-                myEmpty_cell = INFO_sheet.cell(row = j, column = 3)
+    # Agregamos la Columna 'flag', llena de NaN, que Servira para Marcar las Celdas que YA Transcurrimos.
+    df_INFO['flag'] = np.nan
 
-                # Si la Celda SI ESTA VACIA.
-                if myEmpty_cell.value is None:
-                    
-                    # Volvemos a tratar el Problema de las "", tratando de Eliminarlos
-                    text_INFO = str(INFO_sheet.cell(row = j, column = 2).value)
-                    text_INFO = text_INFO.replace('"', '').strip()
+    for i in range(len(df_Data_Signals.index)):
 
-                    text_Sheet = str(sheet.cell(row = i, column = 3).value)
-                    text_Sheet = text_Sheet.replace('"', '').strip()
+        for j in range(len(df_INFO.index)):
+            
+            # Validamos si la Columna flag de INFO esta Vacia.
+            # Si esta VACIA, se valida la Senial.
+            # Sino se pasa a la Siguiente Linea.
+            myEmpty_cell = df_INFO.iloc[j]['flag']
 
-                    # ----- Comparamos la Senial de INFO contra Nombre_Senial del Catalogo.
-                    if (text_INFO == text_Sheet): 
-                        
-                        print("> :", i)
+# ----------------------------------------------#
 
-                        # 1.- Colocar una Bandera a INFO para que ya no cuente ese Match.
-                        myEmpty_cell.value = 1
+            # SI esta Vacia la Bandera 'flag' y el Nombre de la Senial esta Vacio (NaN)
+            # Las Celdas Vacias del CSV se consideran de Tipo Float64
+            if  (np.isnan(myEmpty_cell)) and ( type(df_Data_Signals.iloc[i]['Nombre_Senial']) == float ):
+                
+                print("Vacio:", i)
 
-                        # 2.- Debo Obtener el Valor del Grupo en INFO.
-                        match_Group = INFO_sheet.cell(row = j, column = 1)
-                        match_Group = match_Group.value
+                #--- iloc para leer [Fila][Columna]
+                #--- loc para escribiri [Fila, Columna]
 
-                        # 3.- Debo Guardar el Match en el Catlogo
-                        exact_Match = sheet.cell(row = i, column = 1)
-                        exact_Match.value = match_Group
+                # 1.- Colocar una Bandera a INFO para que ya no cuente ese Match.
+                df_INFO.loc[j, 'flag'] = 1
 
-                        # 4.- Guardamos los cambios en INFO.
-                        INFO_wb.save(INFO_Path[0])
+                # 2.- Debo Obtener el Valor del Grupo en INFO.
+                var = df_INFO.iloc[j]['Grupo']
 
-                        break
+                # 3.- Debo Guardar el Match en el Catalogo
+                # Eliminamos Posibles Textos que NO deban Ir.
+                var = var.replace("_text", "")
+                df_Data_Signals.loc[i, 'Grupo'] = var
+                
+                # 4.- Al NO tener Nombre, el Grupo pasa a ser el Nombre.
+                # Nombre_Senial Debe ir sin Corchetes
+                var = var.replace("[", "").replace("]", "").replace("_text", "")
+                # Lo Escribimos en la Columna de 'Nombre_Senial'.
+                df_Data_Signals.loc[i, 'Nombre_Senial'] = var
+
+                # 5.- Al YA tener un Nombre, procedemos a crear el Nombre_IBA 
+                name_IBA = var
+                var_2 = df_Data_Signals.iloc[i]['Channel_Number']
+                if (int(var_2) <= 999 ):
+                    # Si es Menor a 999, se le asignan 0000.
+                    number_IBA = '%04d' % int(var_2)
                 else:
-                    # Si la Celda NO ESTA VACIA.
-                    pass
+                    number_IBA = int(var_2)
 
-        # -- Analizamos las Posiciones Vacias.
-        print("\nAnalizamos las Posiciones Vacias.")
-        # Catalogo -> INFO -> Match
-        for i in range(2, sheet.max_row):
+                #Concatemoa el Nombre Final.
+                complete_name_IBA = name_IBA + "_" + str(number_IBA)
+                # Lo Escribimos en la Columna de 'Nombre_IBA'.
+                df_Data_Signals.loc[i, 'Nombre_IBA'] = complete_name_IBA
+                break
+            else:
+                pass
 
-            for j in range(2,  INFO_sheet.max_row):
+# ----------------------------------------------#
 
-                # Validamos si la Columna 3 de INFO Vacia.
-                # Si esta VACIA, se valida la Senial.
-                # Sino, se pasa a la Siguiente Linea.
-                ######## NOTA: El Excel empieza con la Celda (1, 1)
-                myEmpty_cell = INFO_sheet.cell(row = j, column = 3)
+            # # SI esta Vacia la Bandera 'flag', PERO SI tenemos Nombre.
+            if np.isnan(myEmpty_cell):
+                
+                # Volvemos a tratar el Problema de las "", tratando de Eliminarlos
+                text_INFO = str(df_INFO.iloc[j]['Señal']).replace('"', '').strip()
+                
+                text_Sheet = str(df_Data_Signals.iloc[i]['Nombre_Senial']).replace('"', '').strip()
 
-                if (myEmpty_cell.value is None) and (sheet.cell(row = i, column = 3).value in [None,'None' ,'']):
+                # Comparamos los Nombres de la Senial y de INFO.
+                if (text_INFO == text_Sheet):
                     
-                    print("> :", i)
+                    print(">>>:", i)
+
+                    #--- iloc para leer [Fila][Columna]
+                    #--- loc para escribiri [Fila, Columna]
 
                     # 1.- Colocar una Bandera a INFO para que ya no cuente ese Match.
-                    myEmpty_cell.value = 1
+                    df_INFO.loc[j, 'flag'] = 1
 
                     # 2.- Debo Obtener el Valor del Grupo en INFO.
-                    match_Group = INFO_sheet.cell(row = j, column = 1)
-                    match_Group = match_Group.value
+                    var = df_INFO.iloc[j]['Grupo']
 
                     # 3.- Debo Guardar el Match en el Catlogo
-                    exact_Match = sheet.cell(row = i, column = 1)
-                    exact_Match.value = match_Group
-
-                    # 4.- Al NO tener Nombre, el Grupo pasa a ser el Nombre.
-                    excat_Name = sheet.cell(row = i, column = 3)
-                    excat_Name.value = match_Group
-
-                    # 5.- Guardamos los cambios en INFO.
-                    INFO_wb.save(INFO_Path[0])
+                    # Eliminamos Posibles Textos que NO deban Ir.
+                    var = var.replace("_text", "")
+                    df_Data_Signals.loc[i, 'Grupo'] = var
 
                     break
                 else:
                     pass
 
     # ----------------------------------------------#
-    # Guardamos el Catalogo en formato Excel.
-    # Abrimos el Json.
-    with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
+    # -- Analizamos las Posiciones Vacias.
+    #print("\nAnalizamos las Posiciones Vacias.")
+    print("FIN")
+    # ----------------------------------------------#
 
-        # Cargamos la Data del Json.
-        save_Path = json.loads(data.read())
-
-        # Obtenemos el Diccionario del Json.
-        save_Path = save_Path['Save Path'][0]
-        
-        # Del Diccionario obtenemos los Valores y los transformamos a una Lista.
-        save_Path = list(save_Path.values())
-
-        save_Path = save_Path[0]
-
-        # Guardamos el Archivo.
-        wb.save(save_Path)
-
-        wb.close()
-
-        INFO_wb.close()
-
-        print("FIN")
+    df_Data_Signals.to_excel('C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\results\\T.xlsx')
 
 def save_Final_Data():
 
@@ -506,7 +543,7 @@ def save_Final_Data():
         print("FIN")
 
 if __name__ == '__main__':
-
+    
     start_time = time.time()
 
     dfGroups = create_dfGroups()
@@ -515,6 +552,6 @@ if __name__ == '__main__':
 
     create_Catalogue(dfGroups, dfSignals)
 
-    save_Final_Data()
+    #save_Final_Data()
 
     print("--- %s seconds ---" % (time.time() - start_time))
