@@ -339,7 +339,7 @@ def create_Catalogue(dfGroups, dfSignals):
         # Si el Nombre tiene DOBLE ESPACIO, se Sustituye por UNO.
         # Si la Lista tiene elemento, se trabaja aqui, sino Hasta que se Tenga un Nombre Correcto.
         if list_Nombre_Senial[i]:
-            name_IBA = list_Nombre_Senial[i].replace(' ', '_').replace("  ", " ").replace('.', '_').lower()
+            name_IBA = list_Nombre_Senial[i].replace(' ', '_').replace("  ", " ").replace('.', '_').replace('\'', '_').replace('^', '_').lower()
 
         if (int(list_Channel_Number[i]) <= 999):
             # Si es Menor a 999, se le asignan 0000.
@@ -457,7 +457,7 @@ def create_Catalogue(dfGroups, dfSignals):
                     number_IBA = int(var_2)
 
                 #Concatemoa el Nombre Final.
-                complete_name_IBA = name_IBA + "_" + str(number_IBA)
+                complete_name_IBA = name_IBA + "_C" + str(number_IBA)
                 # Lo Escribimos en la Columna de 'Nombre_IBA'.
                 df_Data_Signals.loc[i, 'Nombre_IBA'] = complete_name_IBA
                 break
