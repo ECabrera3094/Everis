@@ -347,7 +347,7 @@ def create_Catalogue(dfGroups, dfSignals):
         else:
             number_IBA = int(list_Channel_Number[i])
         #Concatemoa el Nombre Final.
-        complete_name_IBA = name_IBA + "_" + str(number_IBA)
+        complete_name_IBA = name_IBA + "_C" + str(number_IBA)
         value_Column_Nombre_IBA = sheet.cell(row = flag_row, column = 6)
         value_Column_Nombre_IBA.value = complete_name_IBA
         flag_row += 1
@@ -375,14 +375,12 @@ def create_Catalogue(dfGroups, dfSignals):
         # Cerramos el Archivo
         wb.close()
 
+        # Leemos el Catalogo en Formato DataFrame
         df_Data_Signals = pd.read_excel(save_Path)
 
         print("FIN")
 
-    # ----------------------------------------------#
-    # Iniciamos la Creacion del Match.
-    print("\nInicia creacion del Match.")
-
+    # Leemos la INFO en formato Excel.
     # Abrimos el Json.
     with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
 
@@ -397,6 +395,7 @@ def create_Catalogue(dfGroups, dfSignals):
 
         INFO_Path = INFO_Path[0]
 
+        # Leemos la INFO en Formato DataFrame
         df_INFO = pd.read_excel(INFO_Path)
 
     # Convertimos los DataFrames, que estan en formato Excel, en CSV.
@@ -406,6 +405,9 @@ def create_Catalogue(dfGroups, dfSignals):
     # Leemos los CSV
     df_Data_Signals = pd.read_csv("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\results\\Catalogue.csv", dtype = str)
     df_INFO = pd.read_csv("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\INFO.csv", dtype = str)
+
+    # Iniciamos la Creacion del Match.
+    print("\nInicia creacion del Match.")
 
     # Agregamos la Columna 'flag', llena de NaN, que Servira para Marcar las Celdas que YA Transcurrimos.
     df_INFO['flag'] = np.nan
@@ -497,9 +499,7 @@ def create_Catalogue(dfGroups, dfSignals):
                 else:
                     pass
 
-    # ----------------------------------------------#
-    # -- Analizamos las Posiciones Vacias.
-    #print("\nAnalizamos las Posiciones Vacias.")
+    # Fin del Match
     print("FIN")
     # ----------------------------------------------#
 
