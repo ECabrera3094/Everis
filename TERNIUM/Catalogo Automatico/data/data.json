@@ -19,7 +19,7 @@
 
     "DAT" : [
         {
-            "DAT" : "C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\AM2_MCC1_7944.dat"
+            "DAT" : "C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\Horno5.dat"
         }
     ],
 
@@ -44,6 +44,12 @@
     "Save Path" : [
         {
             "path" : "C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\results\\Catalogue.xlsx"
+        }
+    ], 
+
+    "CSV Path" : [
+        {
+            "path" : "C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\results\\Catalogue.csv"
         }
     ], 
 
