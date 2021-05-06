@@ -311,11 +311,7 @@ def create_Catalogue(dfGroups, dfSignals):
 
     for i in range(len(list_Channel_Number)):
         value_Column_Channel_Number = sheet.cell(row = flag_row, column = 4)
-        # Agregamos 0000 .
-        if (int(list_Channel_Number[i]) <= 999):
-            value_Column_Channel_Number.value = '%04d' % int(list_Channel_Number[i])
-        else:
-            value_Column_Channel_Number.value = int(list_Channel_Number[i])
+        value_Column_Channel_Number.value = int(list_Channel_Number[i])
         flag_row += 1
 
     # ----- Llenamos la Columna del Unit.
@@ -339,7 +335,7 @@ def create_Catalogue(dfGroups, dfSignals):
         # Si el Nombre tiene DOBLE ESPACIO, se Sustituye por UNO.
         # Si la Lista tiene elemento, se trabaja aqui, sino Hasta que se Tenga un Nombre Correcto.
         if list_Nombre_Senial[i]:
-            name_IBA = list_Nombre_Senial[i].replace(' ', '_').replace("  ", " ").replace('.', '_').replace('\'', '_').replace('^', '_').lower()
+            name_IBA = list_Nombre_Senial[i].replace(' ', '_').replace("  ", " ").replace('.', '_').replace('%', '_').replace(',', '_').replace('#', '_').replace('+', '_').replace('=', '_').replace(':', '_').replace('-', '_').replace('\'', '_').replace('^', '_').replace('?', '_').replace("'/'", '_').lower()
 
         if (int(list_Channel_Number[i]) <= 999):
             # Si es Menor a 999, se le asignan 0000.
@@ -399,12 +395,45 @@ def create_Catalogue(dfGroups, dfSignals):
         df_INFO = pd.read_excel(INFO_Path)
 
     # Convertimos los DataFrames, que estan en formato Excel, en CSV.
-    df_Data_Signals.to_csv("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\results\\Catalogue.csv")
-    df_INFO.to_csv("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\INFO.csv")
+    # Abrimos el Json.
+    with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
+        
+        # Cargamos la Data del Json.
+        Catalogue = json.loads(data.read())
 
-    # Leemos los CSV
-    df_Data_Signals = pd.read_csv("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\results\\Catalogue.csv", dtype = str)
-    df_INFO = pd.read_csv("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\INFO.csv", dtype = str)
+        # Obtenemos el Diccionario del Json.
+        Catalogue = Catalogue['CSV Catalogue Path'][0]
+
+        # Del Diccionario obtenemos los Valores y los transformamos a una Lista.
+        CSV_Catalogue_Path = list(Catalogue.values())
+
+        # Obtenemos la Ruta de la Lista.
+        CSV_Catalogue_Path = CSV_Catalogue_Path[0]
+
+        # Convertimos a CSV
+        df_Data_Signals.to_csv(CSV_Catalogue_Path)
+
+        # Leemos los CSV
+        df_Data_Signals = pd.read_csv(CSV_Catalogue_Path, dtype = str)
+
+     # Abrimos el Json.
+    with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
+
+        # Cargamos la Data del Json.
+        INFO = json.loads(data.read())
+
+        # Obtenemos el Diccionario del Json.
+        INFO = INFO['CSV INFO Path'][0]
+        
+        # Del Diccionario obtenemos los Valores y los transformamos a una Lista.
+        INFO_Path = list(INFO.values())
+
+        INFO_Path = INFO_Path[0]
+
+        df_INFO.to_csv(INFO_Path)
+
+        
+        df_INFO = pd.read_csv(INFO_Path, dtype = str)
 
     # Iniciamos la Creacion del Match.
     print("\nInicia creacion del Match.")
@@ -427,7 +456,7 @@ def create_Catalogue(dfGroups, dfSignals):
             # Las Celdas Vacias del CSV se consideran de Tipo Float64
             if  (np.isnan(myEmpty_cell)) and ( type(df_Data_Signals.iloc[i]['Nombre_Senial']) == float ):
                 
-                print("Vacio:", i)
+                print("V:", i)
 
                 #--- iloc para leer [Fila][Columna]
                 #--- loc para escribiri [Fila, Columna]
@@ -451,10 +480,13 @@ def create_Catalogue(dfGroups, dfSignals):
 
                 # 5.- Al YA tener un Nombre, procedemos a crear el Nombre_IBA 
                 name_IBA = var
+
                 var_2 = df_Data_Signals.iloc[i]['Channel_Number']
                 if (int(var_2) <= 999 ):
                     # Si es Menor a 999, se le asignan 0000.
                     number_IBA = '%04d' % int(var_2)
+                    # Ya que andamos por Aqui, modificamos este mismo Numero a la Columna 'Channel_Number'
+                    df_Data_Signals.loc[i, 'Channel_Number'] = number_IBA
                 else:
                     number_IBA = int(var_2)
 
@@ -479,7 +511,7 @@ def create_Catalogue(dfGroups, dfSignals):
                 # Comparamos los Nombres de la Senial y de INFO.
                 if (text_INFO == text_Sheet):
                     
-                    print(">>>:", i)
+                    print(">:", i)
 
                     #--- iloc para leer [Fila][Columna]
                     #--- loc para escribiri [Fila, Columna]
@@ -493,17 +525,43 @@ def create_Catalogue(dfGroups, dfSignals):
                     # 3.- Debo Guardar el Match en el Catlogo
                     # Eliminamos Posibles Textos que NO deban Ir.
                     var = var.replace("_text", "")
+
                     df_Data_Signals.loc[i, 'Grupo'] = var
+
+                    # 4.- Modificamos el Nombre para AGREGARLE el PRIMER Numero del Grupo al Principio de este
+                    # Obtengo el Indice que me Indica hasta que Cantidad de Caracteres termina el Primer Numero.
+                    index_Grupo = var.find(":")
+
+                    # Delimito el Numero desde el Primer Caracter despues del '[' hasta mi Indice.
+                    number_Grupo = var[1:index_Grupo]
+
+                    # 5.- Obtengo el Nombre_Grupo
+                    name = df_Data_Signals.iloc[i]['Nombre_Grupo']
+
+                    # 6.- Concateno el Numero del Grupo con el Nombre.
+                    final_name = str(number_Grupo) + ". " + str(name)
+
+                    # 7.- Guardo de nueva cuenta el Nombre del Grupo en su respectiva Celda.
+                    df_Data_Signals.loc[i, 'Nombre_Grupo'] = final_name
+                    
+                    # 8.- Modificamos este mismo Numero a la Columna 'Channel_Number' 
+                    var_2 = df_Data_Signals.iloc[i]['Channel_Number']
+                    if (int(var_2) <= 999 ):
+                        # Si es Menor a 999, se le asignan 0000.
+                        number_IBA = '%04d' % int(var_2)
+                        # Ya que andamos por Aqui, modificamos este mismo Numero a la Columna 'Channel_Number'
+                        df_Data_Signals.loc[i, 'Channel_Number'] = number_IBA
 
                     break
                 else:
                     pass
 
+    # ----------------------------------------------#
+    df_Data_Signals.to_excel("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\results\\Catalogue_2.xlsx")
+    df_Data_Signals.to_parquet('C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\results\\Catalogue.parquet')
+
     # Fin del Match
     print("FIN")
-    # ----------------------------------------------#
-
-    df_Data_Signals.to_excel('C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\results\\T.xlsx')
 
 def save_Final_Data():
 
