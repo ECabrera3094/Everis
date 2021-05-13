@@ -450,7 +450,6 @@ def create_Catalogue(dfGroups, dfSignals):
             # Sino se pasa a la Siguiente Linea.
             myEmpty_cell = df_INFO.iloc[j]['flag']
 
-# ----------------------------------------------#
 
             # SI esta Vacia la Bandera 'flag' y el Nombre de la Senial esta Vacio (NaN)
             # Las Celdas Vacias del CSV se consideran de Tipo Float64
@@ -558,7 +557,21 @@ def create_Catalogue(dfGroups, dfSignals):
 
     # ----------------------------------------------#
     df_Data_Signals.to_excel("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\results\\Catalogue_2.xlsx")
-    df_Data_Signals.to_parquet('C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\results\\Catalogue.parquet')
+
+    # ----- Obtenemos Ruta para Almacenar el Parquet.
+    # Abrimos el Json.
+    with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
+        # Cargamos la Data del Json.
+        parquet_Path = json.loads(data.read())
+
+        # Obtenemos el Diccionario del Json.
+        parquet_Path = parquet_Path['Parquet Path'][0]
+
+        # Del Diccionario obtenemos los Valores y los transformamos a una Lista.
+        parquet_Path = list(parquet_Path.values())
+
+        # Convertirmos el DataFrame a Parquet y lo almacenamos en la Ruta Obtenida.
+        df_Data_Signals.to_parquet(parquet_Path[0])
 
     # Fin del Match
     print("FIN")
