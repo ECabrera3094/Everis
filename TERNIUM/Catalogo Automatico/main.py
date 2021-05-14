@@ -1,7 +1,7 @@
-import sys
 import time
 import json
 import openpyxl
+import threading
 import numpy as np
 import pandas as pd
 from openpyxl import load_workbook
@@ -14,38 +14,24 @@ def create_dfGroups():
     with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
 
         # Cargamos la Data del Json.
-        data_Groups = json.loads(data.read())
+        data_JSON = json.loads(data.read())
 
         # Obtenemos el Diccionario del Json.
-        data_Groups = data_Groups['dfGroups'][0]
+        data_Groups = data_JSON['dfGroups'][0]
 
         # Del Diccionario obtenemos los Valores y los transformamos a una Lista.
         listValues = list(data_Groups.values())
 
         # Lista Final que usaremos para almacenar las Columnas del DF.
-        listFinal_Values = []
+        listFinal_Values = [bytes(eachValue,'utf-8') for eachValue in listValues]
 
-        # Para cada Valor en la Lista de Valores.
-        for eachValue in listValues:
-
-            # Convertimos cada Valor a Byte ya que Trabajaremos con el .Dat
-            byteData = bytes(eachValue,'utf-8')
-
-            # Lo Guardamos en la Lista que Usaremos.
-            listFinal_Values.append(byteData)
-
-    # Abrimos el Json para la Lectura de la Ruta del .DAT.
-    with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
-
-        # Cargamos la Data del Json.
-        DAT_File = json.loads(data.read())
-
-        # Obtenemos el Diccionario del Json.
-        DAT_File = DAT_File['DAT'][0]
+        # Obtenemos el Diccionario del Json para la Lectura de la Ruta del .DAT.
+        DAT_File = data_JSON['DAT'][0]
 
         # Del Diccionario obtenemos los Valores y los transformamos a una Lista.
         path_DAT_File = list(DAT_File.values())
 
+        # La Elemento 0 sera la Ruta del .DAT
         path_DAT_File = path_DAT_File[0]    
 
     # Abrimos el .DAT
@@ -53,24 +39,6 @@ def create_dfGroups():
 
         # Lectura del .DAT
         myDAT_File = myDAT_File.readlines()
-
-    # -- Obtenemos la Ruta para Guadra el TXT del Grupo.
-    # Abrimos el Json para la Lectura de la Ruta del TXT del Grupo.
-    with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
-        
-        # Cargamos la Data del Json.
-        txt_File = json.loads(data.read())
-
-        # Obtenemos el Diccionario del Json.
-        txt_File = txt_File['txt_Data_Groups'][0]
-
-        # Del Diccionario obtenemos los Valores y los transformamos a una Lista.
-        txt_Path_File = list(txt_File.values())
-
-        txt_Path_File = txt_Path_File[0]
-
-        # Archivo para Guardar la Informacion Correcta.
-        txtFile = open(txt_Path_File, 'w+')
 
         # Creamos un DataFrame.
         df = pd.DataFrame()
@@ -84,9 +52,13 @@ def create_dfGroups():
                 # Validacion si la Palabra Clave aparece en el Archivo.
                 if (listFinal_Values[i] in eachLine):
                     
-                    # Transformamos a UTF-8.
-                    newString = eachLine.decode(encoding = "utf-8")
-                    
+                    try:
+                        # Transformamos a UTF-8.
+                        newString = eachLine.decode(encoding = "utf-8")
+                    except:
+                        # Transformamos a ISO-8859-1
+                        newString = eachLine.decode(encoding = "ISO-8859-1")
+                        
                     # Eliminamos el Tabulador y el Salto de Linea.
                     newString = newString.strip("\r\n")
 
@@ -97,6 +69,7 @@ def create_dfGroups():
 
                     df = df.append( {nameColumn : newString[1]},  ignore_index=True)
                 elif eachLine == b'endheader:\r\n':
+
                     break
         
         # DF Final que Usaremos
@@ -115,11 +88,18 @@ def create_dfGroups():
 
             dfGroups[listFinal_Values[i]] = copy_df
 
-        txtFile.write(dfGroups.to_string())
+        # Obtenemos el Diccionario del Json para la Lectura de la Ruta del PKL del Grupo.
+        pkl_File = data_JSON['txt_Data_Groups'][0]
+        
+        # Del Diccionario obtenemos los Valores y los transformamos a una Lista.
+        pkl_File = list(pkl_File.values())
 
+        # La Elemento 0 sera la Ruta del PKL del Grupo.
+        pkl_Path_File = pkl_File[0]
+
+        dfGroups.to_pickle(pkl_Path_File)
+        
         print("FIN")
-
-        return dfGroups
 
 def create_dfSignals():
     
@@ -129,10 +109,10 @@ def create_dfSignals():
     with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
 
         # Cargamos la Data del Json.
-        data_Signals = json.loads(data.read())
+        data_JSON = json.loads(data.read())
 
         # Obtenemos el Diccionario del Json.
-        data_Signals = data_Signals['dfSignals'][0]
+        data_Signals = data_JSON['dfSignals'][0]
 
         # Del Diccionario obtenemos los Valores y los transformamos a una Lista.
         listValues = list(data_Signals.values())
@@ -141,14 +121,8 @@ def create_dfSignals():
         # Convertimos cada Valor a Byte ya que Trabajaremos con el .DAT
         listFinal_Values = [bytes(eachValue,'utf-8') for eachValue in listValues]
 
-    # Abrimos el Json para la Lectura de la Ruta del .DAT.
-    with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
-
-        # Cargamos la Data del Json.
-        DAT_File = json.loads(data.read())
-
         # Obtenemos el Diccionario del Json.
-        DAT_File = DAT_File['DAT'][0]
+        DAT_File = data_JSON['DAT'][0]
 
         # Del Diccionario obtenemos los Valores y los transformamos a una Lista.
         path_DAT_File = list(DAT_File.values())
@@ -160,24 +134,6 @@ def create_dfSignals():
 
         # Lectura del .DAT
         myDAT_File = myDAT_File.readlines()
-
-    # -- Obtenemos la Ruta para Guadra el TXT del Grupo.
-    # Abrimos el Json para la Lectura de la Ruta del TXT del Grupo.
-    with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
-        
-        # Cargamos la Data del Json.
-        txt_File = json.loads(data.read())
-
-        # Obtenemos el Diccionario del Json.
-        txt_File = txt_File['txt_Data_Signals'][0]
-
-        # Del Diccionario obtenemos los Valores y los transformamos a una Lista.
-        txt_Path_File = list(txt_File.values())
-
-        txt_Path_File = txt_Path_File[0]
-
-        # Archivo para Guardar la Informacion Correcta.
-        txtFile = open(txt_Path_File, 'w+')
 
         # Creamos un DataFrame.
         df = pd.DataFrame()
@@ -226,6 +182,7 @@ def create_dfSignals():
 
                         df = df.append( {nameColumn : newString[1]},  ignore_index=True)
                     elif eachLine == b'endASCII:\r\n':
+
                         break
 
             blnFlag = False
@@ -246,118 +203,133 @@ def create_dfSignals():
 
             dfSignals[listFinal_Values[i]] = copy_df
 
-        txtFile.write(dfSignals.to_string())
+        # Obtenemos el Diccionario del Json para la Lectura de la Ruta del PKL del Grupo.
+        pkl_File = data_JSON['txt_Data_Signals'][0]
+        
+        # Del Diccionario obtenemos los Valores y los transformamos a una Lista.
+        pkl_File = list(pkl_File.values())
 
+        # La Elemento 0 sera la Ruta del PKL del Grupo.
+        pkl_Path_File = pkl_File[0]
+
+        dfSignals.to_pickle(pkl_Path_File)
+        
         print("FIN")
 
-        return dfSignals
-
-def create_Catalogue(dfGroups, dfSignals):
+def create_Catalogue():
     
     print("\nInicia creacion de Catalogo.")
 
-    # Call a Workbook() function of openpyxl to create a new blank Workbook object.
-    wb = openpyxl.Workbook()
-
-    # Get workbook active sheet from the active attribute.
-    sheet = wb.active
-
-    sheet.title = "Catalogo"
-
-    # ----- Creamos todos los Headers del Catalogo.
-    columns_Catalogue = ['Index', 'Grupo', 'Nombre_Grupo', 'Nombre_Senial', 'Channel_Number', 'Unit', 'Nombre_IBA']
-    
-    for i in range(1, len(columns_Catalogue)):
-        ## NOTA: El Excel empieza con la Celda (1,1)
-        name_Columns_Catalogue = sheet.cell(row = 1, column = i)
-        name_Columns_Catalogue.value = columns_Catalogue[i]
-
-    # ----- Llenamos la Columna del Nombre_Grupo. -----
-    # Lista donde alamcenaremos CADA UNO de los Elementos de (Name * SignalCount) en dfGroups.
-    list_Nombre_Grupo = [] 
-
-    for index, row in dfGroups.iterrows():
-        for i in range( int(row[b'signalCount:']) ):
-            list_Nombre_Grupo.append( row[b'name:'] )
-            
-    # Bandera que Inicializa en 2 porque en 1 esta el Header de la Columna.
-    flag_row = 2
-
-    # Iteramos CADA UNO de los Nombres del Grupo y los Insertamos en las Celdas HACIA ABAJO.
-    for i in range(len(list_Nombre_Grupo)):
-        value_Column_Nombre_Grupo = sheet.cell(row = flag_row, column = 2)
-        value_Column_Nombre_Grupo.value = list_Nombre_Grupo[i]
-        flag_row += 1
-
-    # ----- Llenamos la Columna del Nombre_Senial
-    # Lista donde alamcenaremos CADA UNO de los Elementos de (Name) en dfSignals.
-    list_Nombre_Senial = [row[b'name:'] for index, row in dfSignals.iterrows()]
-
-    # Bandera que Inicializa en 2 porque en 1 esta el Header de la Columna.
-    flag_row = 2   
-
-    # Iteramos CADA UNO de los Nombres del Grupo y los Insertamos en las Celdas HACIA ABAJO.
-    for i in range(len(list_Nombre_Senial)):
-        value_Column_Nombre_Senial = sheet.cell(row = flag_row, column = 3)
-        value_Column_Nombre_Senial.value = list_Nombre_Senial[i]
-        flag_row += 1
-
-    # ----- Llenamos la Columna del Channel_Number.
-    # Lista donde alamcenaremos CADA UNO de los Elementos de (beginchannel) en dfSignals.
-    list_Channel_Number = [row[b'beginchannel:'] for index, row in dfSignals.iterrows()]
-
-    # Bandera que Inicializa en 2 porque en 1 esta el Header de la Columna.
-    flag_row = 2   
-
-    for i in range(len(list_Channel_Number)):
-        value_Column_Channel_Number = sheet.cell(row = flag_row, column = 4)
-        value_Column_Channel_Number.value = int(list_Channel_Number[i])
-        flag_row += 1
-
-    # ----- Llenamos la Columna del Unit.
-    # Lista donde alamcenaremos CADA UNO de los Elementos de (unit) en dfSignals.
-    list_Unit = [row[b'unit:'] for index, row in dfSignals.iterrows()]
-
-    # Bandera que Inicializa en 2 porque en 1 esta el Header de la Columna.
-    flag_row = 2   
-    
-    for i in range(len(list_Unit)):
-        value_Column_Unit = sheet.cell(row = flag_row, column = 5)
-        value_Column_Unit.value = list_Unit[i]
-        flag_row += 1
-
-    # ----- Llenamos la Columna del Nombre_IBA
-    # Es la Concatenacion del Nombre_Senial en Lowercase y el Channel_Number con 000
-    flag_row = 2
-
-    for i in range(len(list_Nombre_Senial)):
-        # Eliminamos los Espacios y Sustituimos por (_). Convertimos a Minusculas.
-        # Si el Nombre tiene DOBLE ESPACIO, se Sustituye por UNO.
-        # Si la Lista tiene elemento, se trabaja aqui, sino Hasta que se Tenga un Nombre Correcto.
-        if list_Nombre_Senial[i]:
-            name_IBA = list_Nombre_Senial[i].replace(' ', '_').replace("  ", " ").replace('.', '_').replace('%', '_').replace(',', '_').replace('#', '_').replace('+', '_').replace('=', '_').replace(':', '_').replace('-', '_').replace('\'', '_').replace('^', '_').replace('?', '_').replace("'/'", '_').lower()
-
-        if (int(list_Channel_Number[i]) <= 999):
-            # Si es Menor a 999, se le asignan 0000.
-            number_IBA = '%04d' % int(list_Channel_Number[i])
-        else:
-            number_IBA = int(list_Channel_Number[i])
-        #Concatemoa el Nombre Final.
-        complete_name_IBA = name_IBA + "_C" + str(number_IBA)
-        value_Column_Nombre_IBA = sheet.cell(row = flag_row, column = 6)
-        value_Column_Nombre_IBA.value = complete_name_IBA
-        flag_row += 1
-
-
-    # Guardamos el Catalogo en formato Excel.
     # Abrimos el Json.
     with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
 
-        # Cargamos la Data del Json.
-        save_Path = json.loads(data.read())
+        # Abrimos los 2 DF: dfGroups y dfSignals (que se encuentran en Formatos PKL)
+        data_JSON = json.loads(data.read())
+        pkl_File = data_JSON['txt_Data_Groups'][0]
+        pkl_File = list(pkl_File.values())
+        Groups_Path_File = pkl_File[0]
+        dfGroups = pd.read_pickle(Groups_Path_File)
 
+        pkl_File = data_JSON['txt_Data_Signals'][0]
+        pkl_File = list(pkl_File.values())
+        Signals_Path_File = pkl_File[0]
+        dfSignals = pd.read_pickle(Signals_Path_File)
+
+        # Call a Workbook() function of openpyxl to create a new blank Workbook object.
+        wb = openpyxl.Workbook()
+
+        # Get workbook active sheet from the active attribute.
+        sheet = wb.active
+
+        sheet.title = "Catalogue"
+
+        # ----- Creamos todos los Headers del Catalogo.
+        columns_Catalogue = ['Index', 'Grupo', 'Nombre_Grupo', 'Nombre_Senial', 'Channel_Number', 'Unit', 'Nombre_IBA']
+        
+        for i in range(1, len(columns_Catalogue)):
+            ## NOTA: El Excel empieza con la Celda (1,1)
+            name_Columns_Catalogue = sheet.cell(row = 1, column = i)
+            name_Columns_Catalogue.value = columns_Catalogue[i]
+
+        # ----- Llenamos la Columna del Nombre_Grupo. -----
+        # Lista donde alamcenaremos CADA UNO de los Elementos de (Name * SignalCount) en dfGroups.
+        list_Nombre_Grupo = [] 
+
+        for index, row in dfGroups.iterrows():
+            for i in range( int(row[b'signalCount:']) ):
+                list_Nombre_Grupo.append( row[b'name:'] )
+                
+        # Bandera que Inicializa en 2 porque en 1 esta el Header de la Columna.
+        flag_row = 2
+
+        # Iteramos CADA UNO de los Nombres del Grupo y los Insertamos en las Celdas HACIA ABAJO.
+        for i in range(len(list_Nombre_Grupo)):
+            value_Column_Nombre_Grupo = sheet.cell(row = flag_row, column = 2)
+            value_Column_Nombre_Grupo.value = list_Nombre_Grupo[i]
+            flag_row += 1
+
+        # ----- Llenamos la Columna del Nombre_Senial
+        # Lista donde alamcenaremos CADA UNO de los Elementos de (Name) en dfSignals.
+        list_Nombre_Senial = [row[b'name:'] for index, row in dfSignals.iterrows()]
+
+        # Bandera que Inicializa en 2 porque en 1 esta el Header de la Columna.
+        flag_row = 2   
+
+        # Iteramos CADA UNO de los Nombres del Grupo y los Insertamos en las Celdas HACIA ABAJO.
+        for i in range(len(list_Nombre_Senial)):
+            value_Column_Nombre_Senial = sheet.cell(row = flag_row, column = 3)
+            value_Column_Nombre_Senial.value = list_Nombre_Senial[i]
+            flag_row += 1
+
+        # ----- Llenamos la Columna del Channel_Number.
+        # Lista donde alamcenaremos CADA UNO de los Elementos de (beginchannel) en dfSignals.
+        list_Channel_Number = [row[b'beginchannel:'] for index, row in dfSignals.iterrows()]
+
+        # Bandera que Inicializa en 2 porque en 1 esta el Header de la Columna.
+        flag_row = 2   
+
+        for i in range(len(list_Channel_Number)):
+            value_Column_Channel_Number = sheet.cell(row = flag_row, column = 4)
+            value_Column_Channel_Number.value = int(list_Channel_Number[i])
+            flag_row += 1
+
+        # ----- Llenamos la Columna del Unit.
+        # Lista donde alamcenaremos CADA UNO de los Elementos de (unit) en dfSignals.
+        list_Unit = [row[b'unit:'] for index, row in dfSignals.iterrows()]
+
+        # Bandera que Inicializa en 2 porque en 1 esta el Header de la Columna.
+        flag_row = 2   
+        
+        for i in range(len(list_Unit)):
+            value_Column_Unit = sheet.cell(row = flag_row, column = 5)
+            value_Column_Unit.value = list_Unit[i]
+            flag_row += 1
+
+        # ----- Llenamos la Columna del Nombre_IBA
+        # Es la Concatenacion del Nombre_Senial en Lowercase y el Channel_Number con 000
+        flag_row = 2
+
+        for i in range(len(list_Nombre_Senial)):
+            # Eliminamos los Espacios y Sustituimos por (_). Convertimos a Minusculas.
+            # Si el Nombre tiene DOBLE ESPACIO, se Sustituye por UNO.
+            # Si la Lista tiene elemento, se trabaja aqui, sino Hasta que se Tenga un Nombre Correcto.
+            if list_Nombre_Senial[i]:
+                name_IBA = list_Nombre_Senial[i].replace(' ', '_').replace("  ", " ").replace('.', '_').replace('%', '_').replace(',', '_').replace('#', '_').replace('+', '_').replace('=', '_').replace(':', '_').replace('-', '_').replace('\'', '_').replace('^', '_').replace('?', '_').replace("'/'", '_').lower()
+
+            if (int(list_Channel_Number[i]) <= 999):
+                # Si es Menor a 999, se le asignan 0000.
+                number_IBA = '%04d' % int(list_Channel_Number[i])
+            else:
+                number_IBA = int(list_Channel_Number[i])
+            #Concatemoa el Nombre Final.
+            complete_name_IBA = name_IBA + "_C" + str(number_IBA)
+            value_Column_Nombre_IBA = sheet.cell(row = flag_row, column = 6)
+            value_Column_Nombre_IBA.value = complete_name_IBA
+            flag_row += 1
+
+    
         # Obtenemos el Diccionario del Json.
-        save_Path = save_Path['Save Path'][0]
+        save_Path = data_JSON['Save Path'][0]
         
         # Del Diccionario obtenemos los Valores y los transformamos a una Lista.
         save_Path = list(save_Path.values())
@@ -374,17 +346,9 @@ def create_Catalogue(dfGroups, dfSignals):
         # Leemos el Catalogo en Formato DataFrame
         df_Data_Signals = pd.read_excel(save_Path)
 
-        print("FIN")
-
-    # Leemos la INFO en formato Excel.
-    # Abrimos el Json.
-    with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
-
-        # Cargamos la Data del Json.
-        INFO = json.loads(data.read())
 
         # Obtenemos el Diccionario del Json.
-        INFO = INFO['INFO'][0]
+        INFO = data_JSON['INFO'][0]
         
         # Del Diccionario obtenemos los Valores y los transformamos a una Lista.
         INFO_Path = list(INFO.values())
@@ -394,15 +358,9 @@ def create_Catalogue(dfGroups, dfSignals):
         # Leemos la INFO en Formato DataFrame
         df_INFO = pd.read_excel(INFO_Path)
 
-    # Convertimos los DataFrames, que estan en formato Excel, en CSV.
-    # Abrimos el Json.
-    with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
-        
-        # Cargamos la Data del Json.
-        Catalogue = json.loads(data.read())
-
+   
         # Obtenemos el Diccionario del Json.
-        Catalogue = Catalogue['CSV Catalogue Path'][0]
+        Catalogue = data_JSON['CSV Catalogue Path'][0]
 
         # Del Diccionario obtenemos los Valores y los transformamos a una Lista.
         CSV_Catalogue_Path = list(Catalogue.values())
@@ -416,23 +374,20 @@ def create_Catalogue(dfGroups, dfSignals):
         # Leemos los CSV
         df_Data_Signals = pd.read_csv(CSV_Catalogue_Path, dtype = str)
 
-     # Abrimos el Json.
-    with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
-
-        # Cargamos la Data del Json.
-        INFO = json.loads(data.read())
 
         # Obtenemos el Diccionario del Json.
-        INFO = INFO['CSV INFO Path'][0]
+        INFO = data_JSON['CSV INFO Path'][0]
         
         # Del Diccionario obtenemos los Valores y los transformamos a una Lista.
         INFO_Path = list(INFO.values())
 
+        # Obtenemos la Ruta de la Lista.
         INFO_Path = INFO_Path[0]
 
+        # Convertimos a CSV
         df_INFO.to_csv(INFO_Path)
 
-        
+        # Leemos los CSV
         df_INFO = pd.read_csv(INFO_Path, dtype = str)
 
     # Iniciamos la Creacion del Match.
@@ -497,9 +452,7 @@ def create_Catalogue(dfGroups, dfSignals):
             else:
                 pass
 
-# ----------------------------------------------#
-
-            # # SI esta Vacia la Bandera 'flag', PERO SI tenemos Nombre.
+            # ------ SI esta Vacia la Bandera 'flag', PERO SI tenemos Nombre.
             if np.isnan(myEmpty_cell):
                 
                 # Volvemos a tratar el Problema de las "", tratando de Eliminarlos
@@ -555,74 +508,31 @@ def create_Catalogue(dfGroups, dfSignals):
                 else:
                     pass
 
-    # ----------------------------------------------#
     df_Data_Signals.to_excel("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\results\\Catalogue_2.xlsx")
 
     # ----- Obtenemos Ruta para Almacenar el Parquet.
-    # Abrimos el Json.
-    with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
-        # Cargamos la Data del Json.
-        parquet_Path = json.loads(data.read())
 
-        # Obtenemos el Diccionario del Json.
-        parquet_Path = parquet_Path['Parquet Path'][0]
+    # Obtenemos el Diccionario del Json.
+    parquet_Path = data_JSON['Parquet Path'][0]
 
-        # Del Diccionario obtenemos los Valores y los transformamos a una Lista.
-        parquet_Path = list(parquet_Path.values())
+    # Del Diccionario obtenemos los Valores y los transformamos a una Lista.
+    parquet_Path = list(parquet_Path.values())
 
-        # Convertirmos el DataFrame a Parquet y lo almacenamos en la Ruta Obtenida.
-        df_Data_Signals.to_parquet(parquet_Path[0])
+    # Convertirmos el DataFrame a Parquet y lo almacenamos en la Ruta Obtenida.
+    df_Data_Signals.to_parquet(parquet_Path[0])
 
     # Fin del Match
     print("FIN")
 
-def save_Final_Data():
-
-    # ----- Obtenemos Ruta para Obtener el Excel y Convertirlo a DataFrame.
-    # Abrimos el Json.
-    with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
-
-        print("\nCreacion de Parquet.")
-
-        # Cargamos la Data del Json.
-        save_Path = json.loads(data.read())
-
-        # Obtenemos el Diccionario del Json.
-        save_Path = save_Path['Save Path'][0]
-        
-        # Del Diccionario obtenemos los Valores y los transformamos a una Lista.
-        save_Path = list(save_Path.values())
-
-        # Leemos el Excel como DataFrame.
-        client_DF = pd.read_excel(save_Path[0])
-
-    # ----- Obtenemos Ruta para Almacenar el Parquet.
-    # Abrimos el Json.
-    with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
-        # Cargamos la Data del Json.
-        parquet_Path = json.loads(data.read())
-
-        # Obtenemos el Diccionario del Json.
-        parquet_Path = parquet_Path['Parquet Path'][0]
-
-        # Del Diccionario obtenemos los Valores y los transformamos a una Lista.
-        parquet_Path = list(parquet_Path.values())
-
-        # Convertirmos el DataFrame a Parquet y lo almacenamos en la Ruta Obtenida.
-        client_DF.to_parquet(parquet_Path[0])
-
-        print("FIN")
 
 if __name__ == '__main__':
     
     start_time = time.time()
 
-    dfGroups = create_dfGroups()
+    create_dfGroups()
 
-    dfSignals = create_dfSignals()
+    create_dfSignals()
 
-    create_Catalogue(dfGroups, dfSignals)
-
-    #save_Final_Data()
-
+    create_Catalogue()
+    
     print("--- %s seconds ---" % (time.time() - start_time))
