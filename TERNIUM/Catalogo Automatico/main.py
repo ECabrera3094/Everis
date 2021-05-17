@@ -314,7 +314,7 @@ def create_Catalogue():
             # Si el Nombre tiene DOBLE ESPACIO, se Sustituye por UNO.
             # Si la Lista tiene elemento, se trabaja aqui, sino Hasta que se Tenga un Nombre Correcto.
             if list_Nombre_Senial[i]:
-                name_IBA = list_Nombre_Senial[i].replace(' ', '_').replace("  ", " ").replace('.', '_').replace('%', '_').replace(',', '_').replace('#', '_').replace('+', '_').replace('=', '_').replace(':', '_').replace('-', '_').replace('\'', '_').replace('^', '_').replace('?', '_').replace("'/'", '_').lower()
+                name_IBA = list_Nombre_Senial[i].replace(' ', '_').replace("  ", " ").replace("__", '_').replace('.', '_').replace(";", '_').replace("(", '_').replace(")", '_').replace('%', '_').replace(',', '_').replace('#', '_').replace('+', '_').replace('=', '_').replace(':', '_').replace('-', '_').replace('\'', '_').replace('^', '_').replace('?', '_').replace("'/'", '_').replace("{", '_').replace("}", '_').replace("[", '_').replace("]", '_').replace(">", '_').replace("<", '_').lower()
 
             if (int(list_Channel_Number[i]) <= 999):
                 # Si es Menor a 999, se le asignan 0000.
@@ -484,6 +484,10 @@ def create_Catalogue():
                     # Obtengo el Indice que me Indica hasta que Cantidad de Caracteres termina el Primer Numero.
                     index_Grupo = var.find(":")
 
+                    if not index_Grupo >= 0:
+                        # Si no encuentra : que busque el .
+                        index_Grupo = var.find(".")
+
                     # Delimito el Numero desde el Primer Caracter despues del '[' hasta mi Indice.
                     number_Grupo = var[1:index_Grupo]
 
@@ -529,10 +533,16 @@ if __name__ == '__main__':
     
     start_time = time.time()
 
-    create_dfGroups()
+    dfGroups = threading.Thread(target=create_dfGroups)
 
-    create_dfSignals()
+    dfSignals = threading.Thread(target=create_dfSignals)
 
+    dfGroups.start()
+    dfSignals.start()
+
+    dfGroups.join()
+    dfSignals.join()
+    
     create_Catalogue()
     
     print("--- %s seconds ---" % (time.time() - start_time))
