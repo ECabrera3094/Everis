@@ -5,10 +5,13 @@ import threading
 import numpy as np
 import pandas as pd
 from openpyxl import load_workbook
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 def create_dfGroups():
 
-    print("\nCreacion del DF por Grupos: ")
+    logging.info("Creacion del DF por Grupos: ")
 
     # Abrimos el Json para la Lectura de las Columnas del Grupo.
     with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
@@ -99,11 +102,11 @@ def create_dfGroups():
 
         dfGroups.to_pickle(pkl_Path_File)
         
-        print("FIN")
+        logging.info("FIN")
 
 def create_dfSignals():
     
-    print("\nCreacion del DF por Signal: ")
+    logging.info("Creacion del DF por Signal: ")
 
     # Abrimos el Json.
     with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
@@ -214,11 +217,11 @@ def create_dfSignals():
 
         dfSignals.to_pickle(pkl_Path_File)
         
-        print("FIN")
+        logging.info("FIN")
 
 def create_Catalogue():
     
-    print("\nInicia creacion de Catalogo.")
+    logging.info("Inicia creacion de Catalogo.")
 
     # Abrimos el Json.
     with open("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\data\\data.json") as data:
@@ -391,7 +394,7 @@ def create_Catalogue():
         df_INFO = pd.read_csv(INFO_Path, dtype = str)
 
     # Iniciamos la Creacion del Match.
-    print("\nInicia creacion del Match.")
+    logging.info("\nInicia creacion del Match.")
 
     # Agregamos la Columna 'flag', llena de NaN, que Servira para Marcar las Celdas que YA Transcurrimos.
     df_INFO['flag'] = np.nan
@@ -410,7 +413,7 @@ def create_Catalogue():
             # Las Celdas Vacias del CSV se consideran de Tipo Float64
             if  (np.isnan(myEmpty_cell)) and ( type(df_Data_Signals.iloc[i]['Nombre_Senial']) == float ):
                 
-                print("V:", i)
+                logging.info("V:" + str(i))
 
                 #--- iloc para leer [Fila][Columna]
                 #--- loc para escribiri [Fila, Columna]
@@ -463,7 +466,7 @@ def create_Catalogue():
                 # Comparamos los Nombres de la Senial y de INFO.
                 if (text_INFO == text_Sheet):
                     
-                    print(">:", i)
+                    logging.info(">:" + str(i))
 
                     #--- iloc para leer [Fila][Columna]
                     #--- loc para escribiri [Fila, Columna]
@@ -526,7 +529,7 @@ def create_Catalogue():
     df_Data_Signals.to_parquet(parquet_Path[0])
 
     # Fin del Match
-    print("FIN")
+    logging.info("FIN")
 
 
 if __name__ == '__main__':
