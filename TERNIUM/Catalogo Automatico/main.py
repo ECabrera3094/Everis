@@ -317,7 +317,9 @@ def create_Catalogue():
             # Si el Nombre tiene DOBLE ESPACIO, se Sustituye por UNO.
             # Si la Lista tiene elemento, se trabaja aqui, sino Hasta que se Tenga un Nombre Correcto.
             if list_Nombre_Senial[i]:
-                name_IBA = list_Nombre_Senial[i].replace(' ', '_').replace("  ", " ").replace("__", '_').replace('.', '_').replace(";", '_').replace("(", '_').replace(")", '_').replace('%', '_').replace(',', '_').replace('#', '_').replace('+', '_').replace('=', '_').replace(':', '_').replace('-', '_').replace('\'', '_').replace('^', '_').replace('?', '_').replace("'/'", '_').replace("{", '_').replace("}", '_').replace("[", '_').replace("]", '_').replace(">", '_').replace("<", '_').lower()
+                # Nombre IBA
+                #name_IBA = list_Nombre_Senial[i].replace(' ', '_').replace("  ", " ").replace("__", '_').replace('.', '_').replace(";", '_').replace("(", '_').replace(")", '_').replace('%', '_').replace(',', '_').replace('#', '_').replace('+', '_').replace('=', '_').replace(':', '_').replace('-', '_').replace('\'', '_').replace('^', '_').replace('?', '_').replace("/", '_').replace("{", '_').replace("}", '_').replace("[", '_').replace("]", '_').replace(">", '_').replace("<", '_').lower()
+                name_IBA = list_Nombre_Senial[i].translate( {ord(c): "_" for c in "__ !  @#$%^&*()[]{};:,./<>¿?\|`~-=_+"} )
 
             if (int(list_Channel_Number[i]) <= 999):
                 # Si es Menor a 999, se le asignan 0000.
