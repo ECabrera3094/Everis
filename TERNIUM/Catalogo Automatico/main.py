@@ -464,12 +464,11 @@ def create_Catalogue():
                 
                 break
                 
-
-  
-    #print(df_Data_Signals.head(35))
-        
-    df_Data_Signals.to_excel("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\results\\Catalogue_2.xlsx")
-
+    #df_Data_Signals.to_excel("C:\\Users\\everis\\Documents\\TERNIUM\\Catalogo Automatico\\results\\Catalogue_2.xlsx")
+     
+    parket_Path_File = generate_File_Path('Parquet Path')
+    
+    df_Data_Signals.to_parquet(parket_Path_File)
 
 if __name__ == '__main__':
     
